@@ -342,6 +342,15 @@
     <div class="picker-title">Ring de negociación FUDO</div>
     <div class="picker-sub">¿Qué querés practicar hoy?</div>
     <div class="cat-desc" style="margin-bottom:16px;">Cada categoría tiene un banco de casos reales (anonimizados). Elegís la categoría y después cuál de los 4 casos activos de este mes querés practicar. Una vez por mes el banco de casos activos rota.</div>
+
+    <details class="refpanel" open style="margin-bottom:16px;">
+      <summary>🏆 Liga de tu equipo (<span id="fs-team-role-label">CS</span>)</summary>
+      <div class="refbody">
+        <div id="fs-team-ranking">
+          <div style="font-size:12px; color:var(--bone-dim);">Cargando ranking del equipo…</div>
+        </div>
+      </div>
+    </details>
     <div class="cat-grid">
       <div class="cat-card vt" data-cat="venta">
         <div class="cat-tag">Venta</div>
@@ -382,10 +391,53 @@
       </div>
     </details>
 
-    <details class="refpanel admin-panel">
-      <summary>⚙️ Admin — sumar casos al banco de entrenamiento compartido</summary>
+    <details class="refpanel admin-panel rehearsal">
+      <summary>🧑‍💼 Modo entrevista (candidatos que no son ejecutivos activos)</summary>
       <div class="refbody">
-        <p style="margin-top:0;">Este archivo no tiene ni puede tener credenciales de Intercom (por seguridad, quedarían expuestas a cualquiera que lo abra). Cargá acá el ID o URL de la conversación real y va a una cola compartida. Para que se sumen de verdad al banco del equipo, escribile a Claude en el chat: <i>"procesá la cola de casos de Intercom"</i> — Claude las trae desde Intercom, las anonimiza y las agrega a la próxima versión del simulador.</p>
+        <p style="margin-top:0;">Para usar en procesos de selección. El resultado no suma a la liga del equipo ni al progreso de nadie — queda registrado aparte, para que el entrevistador lo revise.</p>
+        <input type="text" id="fs-interview-candidate" placeholder="Nombre del candidato/a">
+        <input type="text" id="fs-interview-interviewer" placeholder="Tu nombre (entrevistador/a)">
+        <select id="fs-interview-cat">
+          <option value="venta">Venta</option>
+          <option value="retencion">Retención</option>
+          <option value="recupero">Recupero</option>
+          <option value="upselling">Up-selling</option>
+        </select>
+        <button class="admin-btn" id="fs-interview-start">Empezar entrevista</button>
+        <div id="fs-interview-status" style="margin-top:8px; font-size:11.5px; color: var(--bone-dim);"></div>
+      </div>
+    </details>
+
+    <details class="refpanel admin-panel rehearsal">
+      <summary>🥊 Desafiar a un compañero</summary>
+      <div class="refbody">
+        <p style="margin-top:0;">Elegí una categoría y un caso, y quedará disponible para que cualquiera del equipo lo acepte y compare su resultado con el tuyo.</p>
+        <input type="text" id="fs-challenge-title" placeholder="Título del desafío (ej: 'Objeción de precio - ronda 1')">
+        <select id="fs-challenge-cat">
+          <option value="venta">Venta</option>
+          <option value="retencion">Retención</option>
+          <option value="recupero">Recupero</option>
+          <option value="upselling">Up-selling</option>
+        </select>
+        <button class="admin-btn" id="fs-challenge-create">Crear desafío</button>
+        <div id="fs-challenge-status" style="margin-top:8px; font-size:11.5px; color: var(--bone-dim);"></div>
+        <div id="fs-challenge-list" style="margin-top:12px;"></div>
+      </div>
+    </details>
+
+    <details class="refpanel admin-panel">
+      <summary>⚙️ Admin — configuración y banco de casos</summary>
+      <div class="refbody">
+        <p style="margin-top:0;"><b>Instructor en vivo</b></p>
+        <label><input type="checkbox" id="fs-instructor-toggle" checked> Mostrar burbuja de instructor durante la conversación (para todo el equipo)</label>
+
+        <p style="margin-top:16px;"><b>Rotación de casos</b></p>
+        <p style="font-size:11.5px; color:var(--bone-dim);">Avanza a la siguiente tanda de 4 casos activos en cada categoría (solo tiene efecto en categorías con más de 4 casos cargados).</p>
+        <button class="admin-btn" id="fs-rotate-cases">🔄 Actualizar casos del mes (todas las categorías)</button>
+        <div id="fs-rotate-status" style="margin-top:8px; font-size:11.5px; color: var(--bone-dim);"></div>
+
+        <p style="margin-top:16px;"><b>Sumar casos al banco (desde Intercom)</b></p>
+        <p style="margin-top:0;">Este archivo no tiene ni puede tener credenciales de Intercom (por seguridad, quedarían expuestas a cualquiera que lo abra). Cargá acá el ID o URL de la conversación real y va a una cola compartida. Para que se sumen de verdad al banco del equipo (tabla <code>cases</code> en Supabase), escribile a Claude en el chat: <i>"procesá la cola de casos de Intercom"</i> — Claude las trae desde Intercom, las anonimiza y las agrega directo a la base.</p>
         <input type="text" id="fs-admin-url" placeholder="ID o URL de la conversación de Intercom">
         <select id="fs-admin-cat">
           <option value="venta">Venta</option>
@@ -433,6 +485,9 @@
           <div class="theory-item"><b>Negociación basada en intereses</b> — Fisher &amp; Ury (Getting to Yes): separar a la persona del problema, enfocarse en intereses reales (no posiciones), conocer tu mejor alternativa antes de ceder margen.</div>
           <div class="theory-item"><b>Método HEARD para clientes enojados o casos complejos</b>: Escuchar sin interrumpir, Empatizar con la frustración, Disculparse por la experiencia (aunque no sea "culpa" de uno), Resolver con un paso concreto, y Diagnosticar la causa de fondo para que no se repita.</div>
           <div class="theory-item"><b>Separar a la persona del problema en conflictos difíciles</b>: cuando el cliente está enojado, no tomarlo como algo personal ni ponerse a la defensiva — el objetivo es resolver el problema, no "ganar" la discusión. Si el cliente cruza a un trato irrespetuoso, se puede poner un límite con firmeza y calma sin dejar de ofrecer ayuda.</div>
+          <div class="theory-item"><b>Challenger Sale</b> — Dixon &amp; Adamson: enseñar (traer una perspectiva o dato que el cliente no tenía sobre su propio negocio), adaptar el mensaje a quién tenés enfrente, y tomar el control de la conversación con confianza en vez de solo reaccionar a lo que pide el cliente.</div>
+          <div class="theory-item"><b>Retención basada en cuenta (account-based retention)</b>: en cuentas con varios locales o alto volumen, mapear quién decide de verdad (no siempre quien escribe) y dimensionar la propuesta al tamaño real de la cuenta, no con una respuesta genérica de manual.</div>
+          <div class="theory-item"><b>Venta consultiva en casos complejos</b>: cuando hay varias objeciones mezcladas (precio + funcionalidad + desconfianza), separar el problema en partes, resolver una por vez y confirmar acuerdo parcial antes de avanzar a la siguiente, en vez de intentar cerrar todo de un salto.</div>
         </div>
       </details>
 
@@ -523,12 +578,12 @@
 
   async function mirrorRepToDataProject() {
     // Espeja el usuario del Hub en el proyecto propio del entrenador (mismo id de auth),
-    // así el leaderboard puede hacer join con reps(name) dentro de su propia base.
+    // así el leaderboard y el ranking de equipo pueden hacer join/filtro dentro de su propia base.
     try {
       await sb('reps?on_conflict=id', {
         method: 'POST',
         headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' },
-        body: JSON.stringify({ id: repId, name: repName }),
+        body: JSON.stringify({ id: repId, name: repName, role: currentRole }),
       });
     } catch (e) { console.error('No se pudo espejar el usuario en el proyecto de datos', e); }
   }
@@ -689,154 +744,29 @@
     });
   }
 
-  // ---- Banco de casos: 4 por categoría, inspirados en patrones reales de Intercom/Drive de FUDO ----
-  // (situaciones anonimizadas — nombres, negocios y datos de contacto ficticios).
-  const CASES = {
-    venta: [
-      {
-        persona: { avatar: 'V', name: 'Vanina Ríos — hamburguesería (Rosario, AR)',
-          desc: 'Evaluando cambiar de sistema. Encontró un POS más barato y no está segura de justificar la diferencia.' },
-        tensionLabels: { left: 'Riesgo de pérdida', right: 'Cierre probable' },
-        opening: 'Hola, gracias por llamar. Mirá, ya vi otro sistema que me sale bastante más barato que FUDO... no sé si vale tanto la diferencia, la verdad.',
-        openingProb: 45,
-        system: `Sos Vanina Ríos, dueña de una hamburguesería en Rosario, Argentina. Estás evaluando FUDO pero encontraste un competidor más barato. Sos escéptica pero no hostil; si el vendedor da un buen argumento de valor podés ceder terreno, pero si solo repite el precio o cede descuento fácil, te mantenés firme o pedís más descuento.`,
-      },
-      {
-        persona: { avatar: 'A', name: 'Alan Valenzuela — emprendimiento gastronómico chico (AR)',
-          desc: 'Recién está por arrancar. Consultó si hay un plan más económico porque el negocio es muy chico todavía.' },
-        tensionLabels: { left: 'No contrata', right: 'Contrata' },
-        opening: 'Hola, quería saber si tienen algún plan más económico. Recién estamos arrancando, somos un emprendimiento chico y se nos hace difícil justificar el costo.',
-        openingProb: 35,
-        system: `Sos Alan Valenzuela, estás por abrir un emprendimiento gastronómico chico en Argentina. Consultaste por un plan más económico porque el negocio recién arranca y el flujo de caja es ajustado. No sos desconfiado del producto, el tema es presupuesto en esta etapa inicial. Si el vendedor te ofrece algo escalonado (empezar chico y crecer) o te hace ver el costo de no tener un sistema ordenado desde el día uno, podés avanzar. Si solo insiste en las funciones sin hablar de presupuesto, dudás.`,
-      },
-      {
-        persona: { avatar: 'G', name: 'Gianfranco B. — negocio que arranca a cobrar con tarjeta (AR)',
-          desc: 'Quiere sumar cobro con tarjeta pero el costo del servicio de pagos le parece muy caro para su volumen actual.' },
-        tensionLabels: { left: 'No contrata', right: 'Contrata' },
-        opening: 'Hola, queremos empezar a usar el sistema de pagos con tarjeta, pero la verdad es que nos parece muy caro para lo que facturamos hoy.',
-        openingProb: 30,
-        system: `Sos Gianfranco, dueño de un local gastronómico chico en Argentina que quiere aceptar pagos con tarjeta a través de FUDO Pagos, pero el costo te parece alto para tu facturación actual. No rechazás la herramienta, cuestionás el número. Si el vendedor te muestra el retorno concreto (más ventas por aceptar tarjeta, menos fricción en caja), podés avanzar. Si solo repite "es lo que cuesta", te frenás.`,
-      },
-      {
-        persona: { avatar: 'N', name: 'Nadia Cortez — bar de tapas (Mendoza, AR)',
-          desc: 'Le gusta el producto pero no quiere firmar un contrato largo — le genera desconfianza atarse por mucho tiempo.' },
-        tensionLabels: { left: 'No firma', right: 'Firma' },
-        opening: 'Me gustó todo lo que me mostraste, pero la verdad no quiero atarme a un contrato largo. Prefiero ver cómo funciona antes de comprometerme tanto tiempo.',
-        openingProb: 50,
-        system: `Sos Nadia Cortez, dueña de un bar de tapas en Mendoza, Argentina. Te convenció el producto FUDO pero te genera dudas comprometerte a un contrato largo — preferirías algo más corto para "probar" primero. Si el vendedor reencuadra el compromiso como beneficio (mejores condiciones, soporte prioritario) en vez de solo insistir en que "no pasa nada", te tranquilizás y avanzás. Si te presiona a firmar sin abordar tu inquietud puntual sobre el plazo, pedís más tiempo para pensarlo.`,
-      },
-    ],
-    retencion: [
-      {
-        persona: { avatar: 'D', name: 'Delia Ferreyra — rotisería (Córdoba, AR)',
-          desc: 'Clienta activa hace 2 años. Pide dar de baja porque "ya casi no lo usa" desde que achicó el local.' },
-        tensionLabels: { left: 'Se da de baja', right: 'Se queda', note: 'probabilidad de retención' },
-        opening: 'Hola, che, quiero dar de baja el sistema. Desde que achicamos el local ya casi no lo uso, no tiene sentido seguir pagando.',
-        openingProb: 30,
-        system: `Sos Delia Ferreyra, dueña de una rotisería en Córdoba, clienta de FUDO hace 2 años. Pedís dar de baja porque achicaste el local y sentís que ya no usás el sistema lo suficiente para justificar el costo. No es plata, es uso. Si el ejecutivo entiende el motivo real y te propone algo concreto (pausar en vez de dar de baja, ayudarte a usarlo mejor, o un ajuste razonable) podés reconsiderar. Si solo insiste en que "no te vayas" sin resolver el motivo real, mantenés la baja.`,
-      },
-      {
-        persona: { avatar: 'J', name: 'Julio Hernández — chocolatería (México)',
-          desc: 'Tuvo que cerrar el local temporalmente y pide suspender el servicio, no necesariamente cancelarlo del todo.' },
-        tensionLabels: { left: 'Cancela todo', right: 'Solo pausa', note: 'probabilidad de mantener la cuenta viva' },
-        opening: 'Buenas tardes, necesito suspender mi servicio. Tuve que cerrar el local de forma temporal y ahora mismo no le estoy dando uso.',
-        openingProb: 50,
-        system: `Sos Julio Hernández, dueño de una chocolatería en México. Tu local cerró temporalmente y escribiste pidiendo suspender el servicio de FUDO. No estás decidido a cancelar para siempre, solo no querés pagar mientras el local está cerrado. Si el ejecutivo te ofrece una pausa real (sin perder tu configuración/datos) o alguna alternativa concreta mientras tanto, te resulta perfecto. Si insiste en que sigas pagando el plan completo "por las dudas", te frustrás y es más probable que termines cancelando del todo.`,
-      },
-      {
-        persona: { avatar: 'P', name: 'Patricio Nutrigo — franquicia de viandas (AR)',
-          desc: 'Le llegó una factura de $70.300 y le pareció muy cara. Pide un plan más económico antes de decidir si se va.' },
-        tensionLabels: { left: 'Baja a un plan chico / se va', right: 'Se mantiene', note: 'probabilidad de conservar el valor de la cuenta' },
-        opening: 'Hola, necesito un plan más económico. Me acaban de cobrar $70.300 y la verdad me resulta muy caro.',
-        openingProb: 35,
-        system: `Sos Patricio, dueño de una franquicia de viandas en Argentina. Te acaban de cobrar $70.300 por FUDO y te pareció muy caro; pedís un plan más económico. No necesariamente querés irte, pero si no te dan una opción concreta vas a bajar de plan igual (lo que reduce funcionalidades) o evaluar irte. Si el ejecutivo te ayuda a entender qué estás pagando y encuentra un ajuste razonable, te quedás en un plan de mayor valor. Si solo te dice "es el precio de lista", bajás a lo más barato posible o te vas.`,
-      },
-      {
-        persona: { avatar: 'GI', name: 'Gonzalo Ibarra — cadena de sándwiches, 3 locales (AR)',
-          desc: 'Migrado recientemente de Tienda Online a Tu Delivery. Descubrió que colegas con otras cuentas todavía tienen Tienda Online gratis/plus y siente que es injusto pagar de más.' },
-        tensionLabels: { left: 'Amenaza con irse', right: 'Se queda conforme' },
-        opening: 'Hola, che, quería preguntarte algo. Me migraron a Tu Delivery pero tengo colegas con cuentas que todavía tienen Tienda Online gratis. ¿Por qué yo tengo que pagar más y ellos no?',
-        openingProb: 40,
-        system: `Sos Gonzalo Ibarra, dueño de una cadena de sándwiches con 3 locales en Argentina. Migraste de Tienda Online a Tu Delivery y descubriste que otras cuentas (de colegas) todavía tienen Tienda Online gratuita o Plus, lo que te parece injusto. Arrancás escéptico pero no hostil: solo comparás, no amenazás todavía. Si el ejecutivo te explica bien la diferencia entre cuentas y muestra que entiende tu reclamo, te calmás. Si solo te dan una respuesta genérica sin abordar tu punto de la inequidad, tu frustración escala y podés llegar a decir que preferís volver a Tienda Online o dar de baja. Tenés 3 locales, así que sos una cuenta de peso — un ejecutivo atento podría detectar eso y ofrecerte algo acorde a tu volumen, no una respuesta genérica de manual.`,
-      },
-    ],
-    recupero: [
-      {
-        persona: { avatar: 'R', name: 'Ramiro Beltrán — taquería (México)',
-          desc: 'Cuenta bloqueada por falta de pago. Nunca terminó de habilitar el cobro con tarjeta y dejó todo a medio camino.' },
-        tensionLabels: { left: 'Se pierde la cuenta', right: 'Reactiva' },
-        opening: 'Hola, sí, disculpa, sé que ando atrasado con lo de mi cuenta. Se me juntaron varias cosas y no terminé de subir mis documentos para el cobro con tarjeta.',
-        openingProb: 40,
-        system: `Sos Ramiro Beltrán, dueño de una taquería en México, con la cuenta de FUDO bloqueada por falta de pago. Nunca terminaste de subir la documentación para habilitar el cobro con tarjeta. No sos hostil, estás medio abrumado y con excusas. Si el ejecutivo te da un paso concreto y fácil de seguir (con fecha), avanzás. Si solo te presiona genéricamente, seguís postergando.`,
-      },
-      {
-        persona: { avatar: 'M', name: 'Mario Puentes — resto-bar (Chile/LatAm)',
-          desc: 'Cuenta pausada por un problema de pago que ya resolvió. Escribe activamente pidiendo reactivarla.' },
-        tensionLabels: { left: 'No reactiva', right: 'Reactiva ya' },
-        opening: 'Hola, quiero reactivar mi cuenta por favor. Estaba complicado para pagar pero ya tengo el dinero disponible.',
-        openingProb: 65,
-        system: `Sos Mario Puentes, dueño de un resto-bar. Tu cuenta de FUDO quedó pausada porque no pudiste pagar, pero ahora ya tenés el dinero y escribiste vos mismo pidiendo reactivarla. Estás con buena predisposición — el riesgo acá es que el ejecutivo pierda la oportunidad de asegurar el pago actualizado y ofrecerte algo mejor. Si te atienden rápido y claro, cerrás en el momento. Si te hacen dar muchas vueltas o no te ofrecen nada, te enfría un poco.`,
-      },
-      {
-        persona: { avatar: 'L', name: 'Llarela (Admin) — gastronomía múltiples locales (AR)',
-          desc: 'Quiere reactivar la cuenta pero no está segura de qué plan le conviene ahora — oportunidad de recomendar bien y hasta subir de plan.' },
-        tensionLabels: { left: 'No reactiva', right: 'Reactiva con el plan correcto' },
-        opening: 'Hola, quiero reactivar la cuenta pero antes quería hacerte unas preguntas sobre qué plan me conviene ahora.',
-        openingProb: 55,
-        system: `Sos Llarela, administrás la cuenta de FUDO de un grupo gastronómico en Argentina. Tu cuenta está inactiva y querés reactivarla, pero no estás segura de qué plan te conviene hoy. Sos una clienta con buena predisposición pero necesitás que te asesoren bien. Si el ejecutivo hace un par de preguntas sobre cómo opera hoy tu negocio antes de recomendarte un plan, confiás y avanzás rápido — incluso podés aceptar un plan superior si tiene sentido. Si te tiran el plan más caro sin preguntar nada, dudás y pedís pensarlo.`,
-      },
-      {
-        persona: { avatar: 'T', name: 'Talía Almanza — ex-clienta que quiere volver con un plan específico (AR)',
-          desc: 'Cuenta cerrada hace tiempo. Escribe diciendo que le interesa reactivar puntualmente con el Plan Pro.' },
-        tensionLabels: { left: 'No reactiva', right: 'Reactiva con Plan Pro' },
-        opening: 'Hola, quiero reactivar mi cuenta. Ya fui clienta de ustedes antes, y ahora me interesa reactivarla con el Plan Pro.',
-        openingProb: 60,
-        system: `Sos Talía Almanza, fuiste clienta de FUDO y ahora escribís para reactivar tu cuenta puntualmente con el Plan Pro. Tenés una idea bastante formada de lo que querés. Si el ejecutivo valida tu pedido, entiende por qué elegís ese plan (para confirmar que realmente se ajusta a tu negocio hoy) y te da un camino simple para activarlo, cerrás rápido y con buena predisposición. Si el ejecutivo ignora tu pedido puntual y trata de venderte otra cosa sin preguntarte por qué querés el Plan Pro, te genera desconfianza y pedís pensarlo.`,
-      },
-      {
-        persona: { avatar: 'S', name: 'Sofía Ramallo — negocio gastronómico que nunca arrancó a operar (AR)',
-          desc: 'Paga FUDO hace varios meses pero nunca lo puso en marcha por falta de tiempo. Paga doble abono (su sistema anterior + FUDO sin usar) y pide pausar todo.' },
-        tensionLabels: { left: 'Da de baja por frustración', right: 'Se queda y completa la implementación', note: 'riesgo de churn por costo hundido' },
-        opening: 'Buen día, por el momento aún no hemos comenzado a utilizar el sistema. Hace varios meses que lo venimos pagando y no pudimos inicializarlo por una cuestión de tiempos. Quisiera saber si se puede pausar de algún modo, o al menos todos los adicionales, porque honestamente estamos con doble abono sin sentido: el sistema actual más el de ustedes que nunca inicializamos.',
-        openingProb: 30,
-        system: `Sos Sofía Ramallo, dueña de un negocio gastronómico en Argentina. Contrataste FUDO hace varios meses pero nunca llegaste a implementarlo por falta de tiempo — seguís operando con tu sistema anterior y pagando los dos abonos a la vez, lo que te frustra. Pedís pausar el servicio o al menos los módulos adicionales. FUDO no ofrece pausar cuentas activas, pero sí se puede: (a) dejar la cuenta solo con el plan base sin módulos para bajar el costo mientras completás la implementación, y (b) en este momento hay una promoción vigente de 50% OFF en planes PRO por 2 meses. Si el ejecutivo te ofrece esa combinación concreta (reducir a lo esencial + la promo vigente) y además te ayuda a destrabar por qué no arrancaste (ofreciendo una capacitación o próximo paso concreto), aceptás y tu frustración baja mucho. Si el ejecutivo solo te dice "no se puede pausar" sin ofrecerte una alternativa real, tu frustración sube y es más probable que termines dando de baja por sentir que tirás la plata.`,
-      },
-    ],
-    upselling: [
-      {
-        persona: { avatar: 'F', name: 'Franco Medina — bar (2 años como cliente FUDO, AR)',
-          desc: 'Cliente conforme que va a abrir una segunda sucursal y pregunta cómo escalar el sistema.' },
-        tensionLabels: { left: 'Se queda como está', right: 'Contrata el upgrade' },
-        opening: 'Hola, buenas. Estamos por abrir una segunda sucursal del bar y quería preguntar cómo hacemos con FUDO ahí, si abrimos otra cuenta o cómo sería.',
-        openingProb: 55,
-        system: `Sos Franco Medina, dueño de un bar en Argentina, cliente conforme de FUDO hace 2 años. Vas a abrir una segunda sucursal y estás averiguando cómo escalar (plan multi-sucursal, terminales adicionales). Estás abierto a invertir si ves valor claro, pero cuidás los costos adicionales. Si te explican bien el beneficio de centralizar ambos locales con un camino simple, avanzás. Si solo te venden "más funciones" sin beneficio concreto, dudás y pedís pensarlo.`,
-      },
-      {
-        persona: { avatar: 'J', name: 'Jaime Thome — pizzería (2 locales, AR)',
-          desc: 'Va a abrir un segundo local y pide "clonar" la cuenta para ahorrar tiempo, sin saber que existe un plan multi-sucursal.' },
-        tensionLabels: { left: 'Solo pide clonar gratis', right: 'Contrata plan multi-sucursal' },
-        opening: 'Buenos días, estamos por abrir otra sucursal y queremos ahí. Necesitamos ayuda para clonar nuestros datos y ahorrar tiempo.',
-        openingProb: 40,
-        system: `Sos Jaime Thome, dueño de una pizzería en Argentina que va a abrir una segunda sucursal. Tu pedido inicial es que te "clonen" la configuración actual, para no cargar todo de nuevo. Si el ejecutivo te propone directamente un "upgrade" sin explicarte qué gana tu operación con eso, te suena a venta forzada. Si te muestran un beneficio operativo concreto de manejar los 2 locales desde un mismo lugar, te interesa evaluarlo.`,
-      },
-      {
-        persona: { avatar: 'L', name: 'Lautaro Bossina — bar (2 años operando, AR)',
-          desc: 'Pide formalmente una cotización para una segunda sucursal — intención de compra explícita, listo para avanzar rápido si el número cierra.' },
-        tensionLabels: { left: 'No cierra hoy', right: 'Cierra hoy' },
-        opening: 'Buenas, soy propietario de un bar hace ya dos años y estoy en gestiones para abrir otra sucursal. Me gustaría que me pasen información y cotización.',
-        openingProb: 60,
-        system: `Sos Lautaro Bossina, dueño de un bar en Argentina hace 2 años, cliente conforme de FUDO. Estás en trámites concretos para abrir una segunda sucursal y pediste activamente una cotización. Si te dan un número claro y un camino simple, cerrás rápido. Si te hacen dar vueltas o no contestan lo que preguntaste, te frenás y decís que lo vas a evaluar con calma.`,
-      },
-      {
-        persona: { avatar: 'C', name: 'Carla Núñez — cervecería con mucho movimiento (AR)',
-          desc: 'Su único local creció mucho y la caja única genera cuellos de botella; pregunta por agregar una terminal adicional.' },
-        tensionLabels: { left: 'No suma terminal', right: 'Suma terminal' },
-        opening: 'Hola, tenemos un solo local pero cada vez vendemos más y con una sola caja se nos arma cola. ¿Se puede sumar otra terminal a la misma cuenta?',
-        openingProb: 60,
-        system: `Sos Carla Núñez, dueña de una cervecería en Argentina con un único local que creció mucho en volumen. Con una sola terminal/caja se generan cuellos de botella en los momentos pico. Preguntás si se puede sumar otra terminal a la misma cuenta. Estás bastante convencida de que lo necesitás, así que si el ejecutivo te confirma cómo funciona y el costo, probablemente avances rápido. Si te complican el proceso o no te dan un precio claro, dudás y lo dejás para más adelante.`,
-      },
-    ],
-  };
+  // ---- Banco de casos: ahora vive en Supabase (tabla `cases`), no hardcodeado acá. ----
+  // Así el admin puede seguir sumando casos (a mano o vía la cola de Intercom) sin tocar este archivo.
+  const casesCache = {}; // catId -> array de filas de la tabla `cases`, cacheado por sesión
+
+  async function fetchCasesForCategory(catId) {
+    if (casesCache[catId]) return casesCache[catId];
+    try {
+      const rows = await sb(`cases?category=eq.${catId}&active=eq.true&select=*&order=created_at.asc`);
+      casesCache[catId] = (rows || []).map(r => ({
+        id: r.id,
+        persona: r.persona,
+        tensionLabels: r.tension_labels,
+        opening: r.opening,
+        openingProb: r.opening_prob,
+        system: r.system_prompt,
+      }));
+    } catch (e) {
+      console.error('No se pudieron cargar los casos de la categoría ' + catId, e);
+      casesCache[catId] = [];
+    }
+    return casesCache[catId];
+  }
+
 
   const RUBRICS = {
     venta: {
@@ -889,7 +819,7 @@
   };
 
   const COACH_INSTRUCTIONS = `
-Además de responder en personaje, tenés una segunda tarea silenciosa: evaluar el ÚLTIMO mensaje del EJECUTIVO usando técnicas reconocidas de negociación y ventas: empatía táctica, reflejo (mirroring), etiquetado de emociones (labeling) y preguntas calibradas de Chris Voss; el método SPIN Selling (situación, problema, implicación, necesidad-beneficio) de Neil Rackham; la técnica Sentir-Sentido-Descubierto para objeciones; la negociación basada en intereses de Fisher & Ury (separar a la persona del problema, enfocarse en intereses reales); y, si el cliente está enojado o el caso es complejo, el método HEARD (Escuchar, Empatizar, Disculparse, Resolver, Diagnosticar la causa de fondo).
+Además de responder en personaje, tenés una segunda tarea silenciosa: evaluar el ÚLTIMO mensaje del EJECUTIVO usando técnicas reconocidas de negociación y ventas: empatía táctica, reflejo (mirroring), etiquetado de emociones (labeling) y preguntas calibradas de Chris Voss; el método SPIN Selling (situación, problema, implicación, necesidad-beneficio) de Neil Rackham; la técnica Sentir-Sentido-Descubierto para objeciones; la negociación basada en intereses de Fisher & Ury (separar a la persona del problema, enfocarse en intereses reales); el método Challenger Sale de Dixon & Adamson (enseñar con una perspectiva nueva, adaptar el mensaje, tomar el control de la conversación) para casos complejos o de venta consultiva; y, si el cliente está enojado o el caso es complejo, el método HEARD (Escuchar, Empatizar, Disculparse, Resolver, Diagnosticar la causa de fondo).
 Devolvé SIEMPRE un JSON (nada de markdown, nada de texto fuera del JSON) con esta forma exacta:
 {"reply":"tu respuesta en personaje, 1-3 oraciones, español, sin markdown","prob":0-100,"coach_tip":"1 frase corta y accionable en español mencionando qué técnica podría haber usado, o null si el mensaje del ejecutivo ya fue sólido y no hay margen claro de mejora"}
 "prob" representa qué tan cerca está el cliente de avanzar (comprar, quedarse, reactivar o contratar el upgrade, según corresponda) a partir de lo que el ejecutivo acaba de decir.`;
@@ -970,7 +900,128 @@ Devolvé SIEMPRE un JSON (nada de markdown, nada de texto fuera del JSON) con es
     } catch (e) {
       lbEl.innerHTML = '<div class="leaderboard-row" style="color:var(--bone-dim);">No se pudo cargar la liga.</div>';
     }
+    renderTeamRanking();
   }
+
+  // ---------- Ranking completo del equipo (rol = "equipo"; admin ve todo combinado) ----------
+  async function renderTeamRanking() {
+    const el = document.getElementById('fs-team-ranking');
+    const roleLabelEl = document.getElementById('fs-team-role-label');
+    if (!el) return;
+    const labels = { cs: 'Customer Success', inbound: 'Inbound', outbound: 'Outbound', admin: 'todos los equipos' };
+    if (roleLabelEl) roleLabelEl.textContent = labels[currentRole] || currentRole;
+    try {
+      const rows = await sb('rpc/get_team_ranking', {
+        method: 'POST',
+        body: JSON.stringify({ p_role: currentRole, p_month: monthKey() }),
+      });
+      if (!rows || !rows.length) {
+        el.innerHTML = '<div style="font-size:12px; color:var(--bone-dim);">Todavía no hay actividad este mes en tu equipo.</div>';
+        return;
+      }
+      el.innerHTML = rows.map((r, i) => {
+        const isYou = r.rep_id === repId;
+        return `<div class="leaderboard-row${isYou ? ' you' : ''}">
+          <span>${i + 1}. ${escapeHtml(isYou ? 'Vos' : r.name)} <span class="role-badge ${escapeHtml(r.role)}" style="margin-left:4px;">${escapeHtml(r.role)}</span></span>
+          <span>${r.points_month} pts · ${r.sessions_month} ejerc. · ${r.points_lifetime} pts totales</span>
+        </div>`;
+      }).join('');
+    } catch (e) {
+      el.innerHTML = '<div style="font-size:12px; color:var(--bone-dim);">No se pudo cargar el ranking del equipo.</div>';
+      console.error(e);
+    }
+  }
+
+  // ---------- Modo entrevista (candidatos externos) ----------
+  let interviewContext = null; // {candidate, interviewer}
+
+  async function logInterviewSession(score10) {
+    if (!interviewContext) return;
+    try {
+      await sb('interview_sessions', {
+        method: 'POST', headers: { 'Prefer': 'return=minimal' },
+        body: JSON.stringify({
+          candidate_name: interviewContext.candidate,
+          interviewer: interviewContext.interviewer,
+          category: currentCatId,
+          case_id: currentScenario && currentScenario.id ? currentScenario.id : null,
+          score: score10,
+        }),
+      });
+    } catch (e) { console.error('No se pudo registrar la entrevista', e); }
+  }
+
+  // ---------- Desafíos entre compañeros ----------
+  async function logChallengeResult(challengeId, score10, pointsEarned) {
+    try {
+      await sb(`challenge_invites?challenge_id=eq.${challengeId}&rep_id=eq.${repId}`, {
+        method: 'PATCH', headers: { 'Prefer': 'return=minimal' },
+        body: JSON.stringify({ score: score10, points_earned: pointsEarned, completed_at: new Date().toISOString() }),
+      });
+    } catch (e) { console.error('No se pudo registrar el resultado del desafío', e); }
+    loadChallenges();
+  }
+
+  async function loadChallenges() {
+    const el = document.getElementById('fs-challenge-list');
+    if (!el) return;
+    try {
+      const rows = await sb('challenges?select=*,challenge_invites(invited_name,score,points_earned,completed_at)&order=created_at.desc&limit=10');
+      if (!rows || !rows.length) {
+        el.innerHTML = '<div style="font-size:11.5px; color:var(--bone-dim);">Todavía no hay desafíos creados.</div>';
+        return;
+      }
+      el.innerHTML = rows.map(r => {
+        const invites = r.challenge_invites || [];
+        const done = invites.filter(i => i.completed_at);
+        const myInvite = invites.find(i => i.invited_name === repName);
+        const alreadyDone = myInvite && myInvite.completed_at;
+        const standings = done.slice().sort((a, b) => (b.points_earned || 0) - (a.points_earned || 0))
+          .map((i, idx) => `${idx + 1}. ${escapeHtml(i.invited_name)} — ${i.points_earned || 0} pts`).join('<br>');
+        return `<div class="queue-item" style="flex-direction:column; align-items:flex-start;">
+          <div style="display:flex; justify-content:space-between; width:100%; align-items:center;">
+            <b style="font-size:12px;">${escapeHtml(r.title || 'Desafío')} <span style="font-weight:400; color:var(--bone-dim);">(${escapeHtml(r.category)})</span></b>
+            ${alreadyDone
+              ? '<span class="queue-status agregado">ya jugaste</span>'
+              : `<button type="button" class="qbtn ladder" data-accept-challenge="${r.id}" data-accept-cat="${escapeHtml(r.category)}">Aceptar</button>`}
+          </div>
+          <span style="font-size:11px; color:var(--bone-dim);">Creado por ${escapeHtml(r.created_by_name || '—')} · ${done.length}/${invites.length} completaron</span>
+          ${standings ? '<div style="font-size:11px; margin-top:4px;">' + standings + '</div>' : ''}
+        </div>`;
+      }).join('');
+      el.querySelectorAll('[data-accept-challenge]').forEach(btn => {
+        btn.addEventListener('click', () => acceptChallenge(btn.getAttribute('data-accept-challenge'), btn.getAttribute('data-accept-cat')));
+      });
+    } catch (e) {
+      el.innerHTML = '<div style="font-size:11.5px; color:var(--bone-dim);">No se pudieron cargar los desafíos.</div>';
+    }
+  }
+
+  async function acceptChallenge(challengeId, catId) {
+    const statusEl = document.getElementById('fs-challenge-status');
+    try {
+      const chRows = await sb(`challenges?id=eq.${challengeId}&select=case_id`);
+      const caseId = chRows && chRows[0] ? chRows[0].case_id : null;
+      let caseObj = null;
+      if (caseId) {
+        const rows = await sb(`cases?id=eq.${caseId}&select=*`);
+        if (rows && rows[0]) {
+          const r = rows[0];
+          caseObj = { id: r.id, persona: r.persona, tensionLabels: r.tension_labels, opening: r.opening, openingProb: r.opening_prob, system: r.system_prompt };
+        }
+      }
+      if (!caseObj) { statusEl.textContent = 'No se encontró el caso del desafío.'; return; }
+      await sb('challenge_invites?on_conflict=challenge_id,invited_name', {
+        method: 'POST', headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+        body: JSON.stringify({ challenge_id: challengeId, invited_name: repName, rep_id: repId }),
+      });
+      activateScenario(caseObj, catId, { challengeId });
+    } catch (e) {
+      statusEl.textContent = 'No se pudo aceptar el desafío.';
+      console.error(e);
+    }
+  }
+
   function levelFor(points) {
     let idx = 0;
     for (let i = 0; i < LEVELS.length; i++) if (points >= LEVELS[i].min) idx = i;
@@ -1059,7 +1110,7 @@ Devolvé SIEMPRE un JSON (nada de markdown, nada de texto fuera del JSON) con es
       messages.push({ role: 'assistant', content: replyText });
       addMsg('buyer', replyText);
       if (typeof parsed.prob === 'number') setTension(Math.max(0, Math.min(100, Math.round(parsed.prob))));
-      if (parsed.coach_tip && String(parsed.coach_tip).toLowerCase() !== 'null') {
+      if (instructorEnabled && parsed.coach_tip && String(parsed.coach_tip).toLowerCase() !== 'null') {
         addMsg('coach', parsed.coach_tip);
       }
     } catch (e) {
@@ -1090,7 +1141,7 @@ Devolvé SIEMPRE un JSON (nada de markdown, nada de texto fuera del JSON) con es
 Elegí entre 2 y 3 momentos como máximo: los turnos del ejecutivo con mayor impacto en el resultado. Si lo hizo muy bien y no hay margen real de mejora en ningún turno, devolvé "momentos" como array vacío.`;
 
     try {
-      const raw = await callClaude('Sos un evaluador experto en negociación comercial B2B, formado en los marcos de Chris Voss, SPIN Selling, Feel-Felt-Found, Fisher & Ury, y el método HEARD para manejo de clientes enojados.', [{ role: 'user', content: rubricPrompt }], 900);
+      const raw = await callClaude('Sos un evaluador experto en negociación comercial B2B, formado en los marcos de Chris Voss, SPIN Selling, Feel-Felt-Found, Fisher & Ury, Challenger Sale (Dixon & Adamson) y el método HEARD para manejo de clientes enojados.', [{ role: 'user', content: rubricPrompt }], 900);
       const scores = parseJsonSafe(raw);
       renderScorecard(scores, rubric);
     } catch (e) {
@@ -1118,11 +1169,20 @@ Elegí entre 2 y 3 momentos como máximo: los turnos del ejecutivo con mayor imp
     else if (score10 >= 6) pointsEarned += 15;
     else pointsEarned += 5;
 
-    state.points += pointsEarned;
-    if (score10 >= 8) state.missionDone = Math.min(3, state.missionDone + 1);
-    saveProgress();
-    logSessionAndScore(pointsEarned, score10, currentCatId, currentScenario && currentScenario.persona ? currentScenario.persona.name : null);
-    renderStats();
+    const isPersonalMode = currentScenario && (currentScenario.isRehearsal || currentScenario.isInterview);
+    if (!isPersonalMode) {
+      state.points += pointsEarned;
+      if (score10 >= 8) state.missionDone = Math.min(3, state.missionDone + 1);
+      saveProgress();
+      logSessionAndScore(pointsEarned, score10, currentCatId, currentScenario && currentScenario.persona ? currentScenario.persona.name : null);
+      renderStats();
+    }
+    if (currentScenario && currentScenario.isInterview) {
+      logInterviewSession(score10);
+    }
+    if (currentScenario && currentScenario.challengeId) {
+      logChallengeResult(currentScenario.challengeId, score10, pointsEarned);
+    }
 
     let momentsHtml = '';
     const moments = Array.isArray(scores.momentos) ? scores.momentos : [];
@@ -1150,34 +1210,61 @@ Elegí entre 2 y 3 momentos como máximo: los turnos del ejecutivo con mayor imp
     endBtn.textContent = 'Simulación finalizada';
   }
 
-  // ---------- Rotación mensual: 4 casos activos por categoría, elegís cuál practicar ----------
-  // Si el banco de una categoría tiene más de 4 casos, cada mes se activa una ventana distinta de 4.
-  function getActiveCasesForMonth(catId) {
-    const pool = CASES[catId];
+  // ---------- Rotación mensual: 4 casos activos por categoría, controlada por un puntero en Supabase ----------
+  // El admin puede avanzarlo a mano con el botón "Actualizar casos del mes" en vez de que dependa solo del calendario.
+  async function getActiveCasesForMonth(catId) {
+    const pool = await fetchCasesForCategory(catId);
     const now = new Date();
-    const monthKey = now.getFullYear() * 12 + now.getMonth();
     const monthLabel = now.toLocaleDateString('es-AR', { month: 'long', year: 'numeric' });
+    if (!pool.length) return { cases: [], monthLabel };
     if (pool.length <= 4) return { cases: pool.slice(), monthLabel };
-    const start = monthKey % pool.length;
+
+    let windowStart = 0;
+    try {
+      const rows = await sb(`rotation_state?category=eq.${catId}&select=window_start`);
+      windowStart = (rows && rows[0]) ? rows[0].window_start : 0;
+    } catch (e) { /* usa 0 por defecto */ }
+
     const cases = [];
-    for (let i = 0; i < 4; i++) cases.push(pool[(start + i) % pool.length]);
+    for (let i = 0; i < 4; i++) cases.push(pool[(windowStart + i) % pool.length]);
     return { cases, monthLabel };
+  }
+
+  async function advanceRotation(catId) {
+    const pool = await fetchCasesForCategory(catId);
+    if (pool.length <= 4) return; // nada que rotar si no hay más de 4 casos
+    try {
+      const rows = await sb(`rotation_state?category=eq.${catId}&select=window_start`);
+      const current = (rows && rows[0]) ? rows[0].window_start : 0;
+      const next = (current + 4) % pool.length;
+      await sb(`rotation_state?category=eq.${catId}`, {
+        method: 'PATCH',
+        headers: { 'Prefer': 'return=minimal' },
+        body: JSON.stringify({ window_start: next, last_rotated_at: new Date().toISOString(), last_rotated_by: repName }),
+      });
+    } catch (e) { console.error('No se pudo actualizar la rotación de ' + catId, e); }
   }
 
   let currentCatId = null;
 
-  function showCasePicker(catId) {
+  async function showCasePicker(catId) {
     currentCatId = catId;
-    const { cases, monthLabel } = getActiveCasesForMonth(catId);
+    const grid = document.getElementById('fs-case-grid');
+    grid.innerHTML = '<div style="font-size:12px; color:var(--bone-dim);">Cargando casos…</div>';
     document.getElementById('fs-picker').style.display = 'none';
     document.getElementById('fs-body').style.display = 'none';
     document.getElementById('fs-case-picker').style.display = 'block';
     document.getElementById('fs-case-picker-tag').textContent = TAG_LABELS[catId];
-    document.getElementById('fs-case-month-badge').textContent = '📅 Casos activos de ' + monthLabel;
     document.getElementById('fs-topbar-tag').textContent = 'Ring de negociación';
     document.getElementById('fs-topbar-sub').textContent = TAG_LABELS[catId];
 
-    const grid = document.getElementById('fs-case-grid');
+    const { cases, monthLabel } = await getActiveCasesForMonth(catId);
+    document.getElementById('fs-case-month-badge').textContent = '📅 Casos activos de ' + monthLabel;
+
+    if (!cases.length) {
+      grid.innerHTML = '<div style="font-size:12px; color:var(--bone-dim);">Todavía no hay casos cargados para esta categoría.</div>';
+      return;
+    }
     grid.innerHTML = cases.map((c, i) => `
       <div class="cat-card" data-case-idx="${i}">
         <div class="cat-tag" style="background:${CAT_COLORS[catId] || '#FF5A1F'};">Caso ${i + 1}</div>
@@ -1194,23 +1281,37 @@ Elegí entre 2 y 3 momentos como máximo: los turnos del ejecutivo con mayor imp
 
   function activateScenario(caseObj, catId, opts) {
     opts = opts || {};
+    currentCatId = catId;
     currentScenario = Object.assign({}, caseObj, {
       rubric: RUBRICS[catId],
       tag: TAG_LABELS[catId],
       systemPrompt: buildSystemPrompt(caseObj),
       isRehearsal: !!opts.isRehearsal,
+      isInterview: !!opts.isInterview,
+      challengeId: opts.challengeId || null,
     });
     messages = [];
     ended = false;
 
+    const isPersonalMode = currentScenario.isRehearsal || currentScenario.isInterview;
     document.getElementById('fs-picker').style.display = 'none';
     document.getElementById('fs-case-picker').style.display = 'none';
     document.getElementById('fs-body').style.display = 'flex';
     document.getElementById('fs-topbar-tag').textContent = 'Ring de negociación';
     document.getElementById('fs-topbar-sub').textContent = currentScenario.tag;
-    document.getElementById('fs-month-badge').style.display = opts.isRehearsal ? 'none' : 'inline-flex';
-    document.getElementById('fs-rehearsal-badge').style.display = opts.isRehearsal ? 'inline-flex' : 'none';
-    if (opts.monthLabel) document.getElementById('fs-month-badge').textContent = '📅 Caso de ' + opts.monthLabel;
+    document.getElementById('fs-month-badge').style.display = isPersonalMode ? 'none' : 'inline-flex';
+    document.getElementById('fs-rehearsal-badge').style.display = isPersonalMode ? 'inline-flex' : 'none';
+    if (currentScenario.isInterview) {
+      document.getElementById('fs-rehearsal-badge').textContent = '🧑‍💼 Modo entrevista — no suma a la liga del equipo';
+    } else if (currentScenario.isRehearsal) {
+      document.getElementById('fs-rehearsal-badge').textContent = '🎯 Modo repaso personal — no forma parte del banco compartido';
+    }
+    if (currentScenario.challengeId) {
+      document.getElementById('fs-month-badge').style.display = 'inline-flex';
+      document.getElementById('fs-month-badge').textContent = '🥊 Jugando un desafío';
+    } else if (opts.monthLabel) {
+      document.getElementById('fs-month-badge').textContent = '📅 Caso de ' + opts.monthLabel;
+    }
     document.getElementById('fs-persona-avatar').textContent = currentScenario.persona.avatar;
     document.getElementById('fs-persona-name').textContent = currentScenario.persona.name;
     document.getElementById('fs-persona-desc').textContent = currentScenario.persona.desc;
@@ -1223,9 +1324,11 @@ Elegí entre 2 y 3 momentos como máximo: los turnos del ejecutivo con mayor imp
     chatEl.innerHTML = '';
     renderQuickReplies(catId);
 
-    addMsg('system', opts.isRehearsal
-      ? 'Repaso personal iniciado — practicá como vas a encarar la llamada real.'
-      : 'Simulación iniciada — respondé como lo harías con un cliente real.');
+    addMsg('system', currentScenario.isInterview
+      ? 'Entrevista iniciada — evaluá al candidato como una negociación real.'
+      : currentScenario.isRehearsal
+        ? 'Repaso personal iniciado — practicá como vas a encarar la llamada real.'
+        : 'Simulación iniciada — respondé como lo harías con un cliente real.');
     addMsg('buyer', currentScenario.opening);
     messages.push({ role: 'assistant', content: currentScenario.opening });
     setTension(currentScenario.openingProb);
@@ -1385,6 +1488,89 @@ Devolvé SOLO un objeto JSON (sin markdown, sin texto adicional) con esta forma 
   async function bootApp() {
     await loadProgress();
     await loadQueue();
+    await loadInstructorSetting();
+    await loadChallenges();
+  }
+
+  // ---------- Toggle del instructor en vivo (config global, la controla un admin) ----------
+  let instructorEnabled = true;
+  async function loadInstructorSetting() {
+    try {
+      const rows = await sb(`app_config?key=eq.instructor_enabled&select=value`);
+      if (rows && rows[0]) instructorEnabled = rows[0].value === true || rows[0].value === 'true';
+    } catch (e) { /* usa el default (activado) */ }
+    const toggle = document.getElementById('fs-instructor-toggle');
+    if (toggle) toggle.checked = instructorEnabled;
+  }
+  const instructorToggleEl = document.getElementById('fs-instructor-toggle');
+  if (instructorToggleEl) {
+    instructorToggleEl.addEventListener('change', async () => {
+      instructorEnabled = instructorToggleEl.checked;
+      try {
+        await sb('app_config?on_conflict=key', {
+          method: 'POST',
+          headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+          body: JSON.stringify({ key: 'instructor_enabled', value: instructorEnabled, updated_at: new Date().toISOString() }),
+        });
+      } catch (e) { console.error('No se pudo guardar la configuración del instructor', e); }
+    });
+  }
+
+  // ---------- Botón admin: actualizar casos del mes (rota las 4 categorías) ----------
+  const rotateBtn = document.getElementById('fs-rotate-cases');
+  if (rotateBtn) {
+    rotateBtn.addEventListener('click', async () => {
+      const statusEl = document.getElementById('fs-rotate-status');
+      rotateBtn.disabled = true;
+      statusEl.textContent = 'Actualizando…';
+      await Promise.all(['venta', 'retencion', 'recupero', 'upselling'].map(advanceRotation));
+      statusEl.textContent = '✓ Casos actualizados. Los ejecutivos van a ver la nueva tanda al elegir la categoría.';
+      rotateBtn.disabled = false;
+    });
+  }
+
+  // ---------- Modo entrevista: iniciar ----------
+  const interviewStartBtn = document.getElementById('fs-interview-start');
+  if (interviewStartBtn) {
+    interviewStartBtn.addEventListener('click', async () => {
+      const candidate = document.getElementById('fs-interview-candidate').value.trim();
+      const interviewer = document.getElementById('fs-interview-interviewer').value.trim();
+      const catId = document.getElementById('fs-interview-cat').value;
+      const statusEl = document.getElementById('fs-interview-status');
+      if (!candidate) { statusEl.textContent = 'Ingresá el nombre del candidato.'; statusEl.style.color = 'var(--coral)'; return; }
+      interviewContext = { candidate, interviewer: interviewer || repName };
+      const { cases } = await getActiveCasesForMonth(catId);
+      if (!cases.length) { statusEl.textContent = 'No hay casos cargados en esa categoría.'; return; }
+      const caseObj = cases[Math.floor(Math.random() * cases.length)];
+      activateScenario(caseObj, catId, { isInterview: true });
+    });
+  }
+
+  // ---------- Desafíos: crear ----------
+  const challengeCreateBtn = document.getElementById('fs-challenge-create');
+  if (challengeCreateBtn) {
+    challengeCreateBtn.addEventListener('click', async () => {
+      const title = document.getElementById('fs-challenge-title').value.trim();
+      const catId = document.getElementById('fs-challenge-cat').value;
+      const statusEl = document.getElementById('fs-challenge-status');
+      statusEl.style.color = 'var(--bone-dim)';
+      statusEl.textContent = 'Creando desafío…';
+      try {
+        const { cases } = await getActiveCasesForMonth(catId);
+        if (!cases.length) { statusEl.textContent = 'No hay casos cargados en esa categoría.'; return; }
+        const caseObj = cases[Math.floor(Math.random() * cases.length)];
+        const rows = await sb('challenges', {
+          method: 'POST', headers: { 'Prefer': 'return=representation' },
+          body: JSON.stringify({ created_by: repId, created_by_name: repName, category: catId, case_id: caseObj.id || null, title: title || null }),
+        });
+        statusEl.textContent = '✓ Desafío creado. Compartilo con tus compañeros para que lo acepten.';
+        document.getElementById('fs-challenge-title').value = '';
+        loadChallenges();
+      } catch (e) {
+        statusEl.style.color = 'var(--coral)';
+        statusEl.textContent = 'No se pudo crear el desafío.';
+      }
+    });
   }
 
   // Si ya había una sesión activa (mismo navegador, Hub o entrenador), entra directo sin pedir login de nuevo.
