@@ -1,0 +1,1172 @@
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+  #fudo-sim * { box-sizing: border-box; }
+  #fudo-sim {
+    /* Paleta FUDO: naranja de marca sobre fondos claros. Nombres de variables se mantuvieron
+       (--gold, --coral, --bone, etc.) para minimizar el diff, pero ahora mapean a la paleta clara. */
+    --bg: #FFFFFF;
+    --bg-panel: #FAF9F7;
+    --bg-panel-2: #FFF1E6;
+    --gold: #FF5A1F;
+    --gold-dark: #E04A12;
+    --coral: #E0473B;
+    --bone: #241A12;
+    --bone-dim: #8A7F77;
+    --line: rgba(36,26,18,0.10);
+    font-family: "Plus Jakarta Sans", -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--bone);
+    border-radius: 14px;
+    padding: 0;
+    max-width: 940px;
+    margin: 0 auto;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    box-shadow: 0 1px 3px rgba(36,26,18,0.06);
+  }
+  #fudo-sim .hud-font { font-family: "Plus Jakarta Sans", Arial, sans-serif; letter-spacing: 0.02em; font-weight: 800; }
+
+  #fudo-sim .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 20px; background: var(--bg-panel);
+    border-bottom: 1px solid var(--line);
+  }
+  #fudo-sim .brand { display:flex; align-items:center; gap:10px; }
+  #fudo-sim .brand-mark {
+    width: 30px; height: 30px; border-radius: 8px; background: var(--gold);
+    display:flex; align-items:center; justify-content:center; color:#1a1a1a; font-weight:800; font-size:14px;
+  }
+  #fudo-sim .brand-title { font-size: 13px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--bone-dim); }
+  #fudo-sim .brand-sub { font-size: 15px; font-weight: 700; }
+
+  #fudo-sim .stats { display:flex; gap:18px; align-items:center; }
+  #fudo-sim .stat { text-align:right; }
+  #fudo-sim .stat .num { font-size: 20px; font-weight: 800; color: var(--gold); }
+  #fudo-sim .stat .lbl { font-size: 10px; color: var(--bone-dim); text-transform:uppercase; letter-spacing:0.1em; }
+
+  #fudo-sim .body { display:flex; }
+  #fudo-sim .main { flex: 1; padding: 18px 20px; min-width: 0; }
+  #fudo-sim .side { width: 240px; background: var(--bg-panel); padding: 18px 16px; border-left: 1px solid var(--line); }
+
+  #fudo-sim .month-badge {
+    display:inline-flex; align-items:center; gap:6px; font-size: 10.5px; text-transform:uppercase;
+    letter-spacing:0.08em; color: var(--gold); background: rgba(232,163,61,0.12); border-radius: 6px;
+    padding: 4px 9px; margin-bottom: 10px; font-weight:700;
+  }
+
+  #fudo-sim .persona {
+    display:flex; gap:12px; align-items:center; padding: 12px 14px;
+    background: var(--bg-panel-2); border-radius: 10px; margin-bottom: 12px;
+  }
+  #fudo-sim .persona-avatar {
+    width: 42px; height:42px; border-radius:50%; background: var(--coral);
+    display:flex; align-items:center; justify-content:center; font-weight:800; font-size:16px; flex-shrink:0;
+  }
+  #fudo-sim .persona-name { font-weight: 700; font-size: 14px; }
+  #fudo-sim .persona-desc { font-size: 12px; color: var(--bone-dim); margin-top: 2px; }
+
+  #fudo-sim details.refpanel {
+    background: var(--bg-panel-2); border: 1px solid var(--line); border-radius: 10px;
+    margin-bottom: 10px; font-size: 12px;
+  }
+  #fudo-sim details.refpanel summary {
+    cursor: pointer; padding: 10px 14px; font-weight: 700; color: var(--gold); list-style: none;
+    display:flex; align-items:center; gap:6px;
+  }
+  #fudo-sim details.refpanel summary::-webkit-details-marker { display:none; }
+  #fudo-sim details.refpanel .refbody { padding: 0 14px 14px; color: var(--bone-dim); line-height:1.5; }
+  #fudo-sim .theory-item { margin-bottom: 8px; }
+  #fudo-sim .theory-item b { color: var(--bone); }
+
+  #fudo-sim .tension-wrap { margin-bottom: 14px; }
+  #fudo-sim .tension-label { display:flex; justify-content:space-between; font-size:10px; text-transform:uppercase; letter-spacing:0.1em; color:var(--bone-dim); margin-bottom:5px; }
+  #fudo-sim .tension-track { height: 10px; border-radius: 6px; background: rgba(36,26,18,0.08); overflow:hidden; position:relative; }
+  #fudo-sim .tension-fill { height: 100%; border-radius: 6px; transition: width 0.6s ease, background 0.6s ease; width: 50%; background: var(--gold); }
+  #fudo-sim .tension-tags { display:flex; justify-content:space-between; font-size:10px; color: var(--bone-dim); margin-top:4px; }
+
+  #fudo-sim .chat { height: 300px; overflow-y:auto; padding: 4px 2px; margin-bottom: 10px; }
+  #fudo-sim .msg { max-width: 85%; margin-bottom: 10px; padding: 9px 13px; border-radius: 12px; font-size: 13.5px; line-height:1.45; }
+  #fudo-sim .msg.buyer { background: var(--bg-panel-2); border-top-left-radius: 3px; }
+  #fudo-sim .msg.rep { background: var(--gold); color:#1a1a1a; margin-left:auto; border-top-right-radius: 3px; font-weight:500; }
+  #fudo-sim .msg.system { background:none; color: var(--bone-dim); font-style: italic; font-size:12px; text-align:center; max-width:100%; }
+  #fudo-sim .msg.coach {
+    background: rgba(59,95,224,0.10); border: 1px dashed #3B5FE0; color: #1F2A44;
+    max-width:100%; font-size:12.5px; border-radius: 10px;
+  }
+  #fudo-sim .msg.coach b { color: #3B5FE0; }
+
+  #fudo-sim .quickrow { display:flex; flex-wrap:wrap; gap:6px; margin-bottom: 10px; }
+  #fudo-sim .qbtn {
+    background: var(--bg-panel-2); border: 1px solid var(--line); color: var(--bone-dim);
+    border-radius: 16px; padding: 5px 11px; font-size: 11px; cursor:pointer;
+  }
+  #fudo-sim .qbtn:hover { border-color: var(--gold); color: var(--gold); }
+
+  #fudo-sim .inputrow { display:flex; gap:8px; }
+  #fudo-sim textarea {
+    flex:1; resize:none; background: var(--bg-panel-2); border: 1px solid var(--line); border-radius: 10px;
+    color: var(--bone); padding: 10px 12px; font-size: 13.5px; font-family: inherit; min-height: 44px;
+  }
+  #fudo-sim textarea:focus { outline: 1px solid var(--gold); }
+  #fudo-sim button.send {
+    background: var(--gold); color: #1a1a1a; border:none; border-radius:10px; padding: 0 18px;
+    font-weight:700; cursor:pointer; font-size:13px;
+  }
+  #fudo-sim button.send:disabled { opacity: 0.5; cursor:not-allowed; }
+  #fudo-sim button.end {
+    margin-top:10px; width:100%; background:none; border:1px dashed var(--line); color: var(--bone-dim);
+    padding: 8px; border-radius:8px; font-size:12px; cursor:pointer;
+  }
+  #fudo-sim button.end:hover { border-color: var(--coral); color: var(--coral); }
+
+  #fudo-sim .side h4 { font-size: 11px; text-transform:uppercase; letter-spacing:0.12em; color: var(--bone-dim); margin: 0 0 10px; }
+  #fudo-sim .level-badge { display:flex; align-items:center; gap:10px; margin-bottom:18px; }
+  #fudo-sim .level-ring {
+    width:46px; height:46px; border-radius:50%; border: 3px solid var(--gold);
+    display:flex; align-items:center; justify-content:center; font-weight:800; font-size:16px; flex-shrink:0;
+  }
+  #fudo-sim .level-name { font-weight:700; font-size:14px; }
+  #fudo-sim .level-next { font-size:11px; color: var(--bone-dim); }
+
+  #fudo-sim .mission { background: var(--bg-panel-2); border-radius:10px; padding: 12px; margin-bottom: 16px; }
+  #fudo-sim .mission-title { font-size:12.5px; font-weight:700; margin-bottom:6px; }
+  #fudo-sim .mission-track { height:7px; border-radius:4px; background:rgba(36,26,18,0.08); overflow:hidden; margin-bottom:5px; }
+  #fudo-sim .mission-fill { height:100%; background: var(--gold); border-radius:4px; transition: width .5s ease; }
+  #fudo-sim .mission-note { font-size:10.5px; color: var(--bone-dim); }
+
+  #fudo-sim .streak { display:flex; align-items:center; gap:8px; font-size:13px; margin-bottom:18px; }
+  #fudo-sim .streak .flame { font-size:18px; }
+
+  #fudo-sim .leaderboard-row { display:flex; justify-content:space-between; font-size:12px; padding: 5px 0; border-bottom: 1px solid var(--line); }
+  #fudo-sim .leaderboard-row:last-child { border-bottom:none; }
+  #fudo-sim .leaderboard-row.you { color: var(--gold); font-weight:700; }
+
+  #fudo-sim .scorecard { background: var(--bg-panel-2); border-radius:12px; padding:16px; margin-top:10px; }
+  #fudo-sim .scorecard h3 { margin:0 0 10px; font-size:15px; color: var(--gold); }
+  #fudo-sim .crit-row { margin-bottom:10px; }
+  #fudo-sim .crit-top { display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px; }
+  #fudo-sim .crit-track { height:6px; background:rgba(36,26,18,0.08); border-radius:3px; overflow:hidden; }
+  #fudo-sim .crit-fill { height:100%; background: var(--gold); border-radius:3px; }
+  #fudo-sim .feedback-text { font-size:12.5px; color: var(--bone-dim); line-height:1.5; margin-top:10px; }
+  #fudo-sim .points-earned { text-align:center; padding: 10px; margin-top:12px; background: rgba(232,163,61,0.12); border-radius:8px; font-size:14px; font-weight:800; color: var(--gold); }
+
+  #fudo-sim .moments { margin-top: 16px; }
+  #fudo-sim .moments h4 { font-size: 12px; text-transform:uppercase; letter-spacing:0.1em; color: var(--bone-dim); margin: 0 0 10px; }
+  #fudo-sim .moment { background: rgba(36,26,18,0.04); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; margin-bottom: 10px; }
+  #fudo-sim .moment-said { font-size: 12px; color: var(--bone-dim); margin-bottom: 8px; }
+  #fudo-sim .moment-said .quote { display:block; margin-top: 4px; font-style: italic; color: var(--bone); border-left: 2px solid var(--coral); padding-left: 10px; }
+  #fudo-sim .moment-better { font-size: 12px; color: var(--bone-dim); margin-bottom: 6px; }
+  #fudo-sim .moment-better .quote { display:block; margin-top: 4px; font-style: italic; color: var(--bone); border-left: 2px solid #1E9E5D; padding-left: 10px; }
+  #fudo-sim .moment-why { font-size: 11.5px; color: var(--bone-dim); margin-top: 6px; }
+
+  #fudo-sim .loading { text-align:center; color: var(--bone-dim); font-size:12px; padding: 8px; }
+  @media (max-width: 640px) {
+    #fudo-sim .body { flex-direction: column; }
+    #fudo-sim .side { width:auto; border-left:none; border-top:1px solid var(--line); }
+  }
+
+  #fudo-sim .picker { padding: 22px 20px 26px; }
+  #fudo-sim .picker-title { font-size: 13px; text-transform:uppercase; letter-spacing:0.12em; color: var(--bone-dim); margin-bottom: 4px; }
+  #fudo-sim .picker-sub { font-size: 20px; font-weight: 800; margin-bottom: 10px; }
+  #fudo-sim .cat-grid { display:grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  #fudo-sim .cat-card {
+    background: var(--bg-panel-2); border: 1px solid var(--line); border-radius: 12px; padding: 16px;
+    cursor: pointer; text-align:left; transition: border-color .2s ease, transform .15s ease;
+  }
+  #fudo-sim .cat-card:hover { border-color: var(--gold); transform: translateY(-2px); }
+  #fudo-sim .cat-tag { display:inline-block; font-size: 10px; text-transform:uppercase; letter-spacing:0.1em; color:#1a1a1a; background: var(--gold); padding: 3px 8px; border-radius: 5px; font-weight:800; margin-bottom: 10px; }
+  #fudo-sim .cat-card.rt .cat-tag { background: var(--coral); }
+  #fudo-sim .cat-card.rc .cat-tag { background: #1E9E5D; }
+  #fudo-sim .cat-card.up .cat-tag { background: #3B5FE0; }
+  #fudo-sim .cat-name { font-size: 15px; font-weight: 800; margin-bottom: 6px; }
+  #fudo-sim .cat-desc { font-size: 12px; color: var(--bone-dim); line-height:1.4; }
+  #fudo-sim .switch-btn {
+    background:none; border:1px solid var(--line); color: var(--bone-dim); border-radius: 8px;
+    padding: 5px 10px; font-size: 11px; cursor:pointer;
+  }
+  #fudo-sim .switch-btn:hover { border-color: var(--gold); color: var(--gold); }
+  @media (max-width: 640px) {
+    #fudo-sim .cat-grid { grid-template-columns: 1fr; }
+  }
+
+  #fudo-sim .admin-panel { margin-top: 16px; }
+  #fudo-sim .admin-panel summary { color: #3B5FE0; }
+  #fudo-sim .admin-panel.rehearsal summary { color: var(--gold); }
+  #fudo-sim .refbody label { display:flex; align-items:center; gap:6px; font-size:11.5px; margin: 8px 0; cursor:pointer; }
+  #fudo-sim .refbody input[type="text"], #fudo-sim .refbody textarea, #fudo-sim .refbody select {
+    width: 100%; background: var(--bg); border: 1px solid var(--line); border-radius: 8px;
+    color: var(--bone); padding: 8px 10px; font-size: 12.5px; font-family: inherit; margin-bottom: 8px;
+  }
+  #fudo-sim .refbody textarea { min-height: 80px; resize: vertical; }
+  #fudo-sim .admin-btn {
+    background: var(--gold); color: #1a1a1a; border:none; border-radius: 8px; padding: 7px 14px;
+    font-weight:700; cursor:pointer; font-size:12px;
+  }
+  #fudo-sim .admin-btn.blue { background: #3B5FE0; }
+  #fudo-sim .admin-btn:disabled { opacity:0.5; cursor:not-allowed; }
+  #fudo-sim .queue-item {
+    display:flex; justify-content:space-between; gap:8px; align-items:center; font-size:11.5px;
+    padding: 7px 0; border-bottom: 1px solid var(--line);
+  }
+  #fudo-sim .queue-item:last-child { border-bottom:none; }
+  #fudo-sim .queue-status { flex-shrink:0; font-size:10px; text-transform:uppercase; letter-spacing:0.06em; padding:2px 7px; border-radius:5px; }
+  #fudo-sim .queue-status.pendiente { background: rgba(232,163,61,0.18); color: var(--gold); }
+  #fudo-sim .queue-status.agregado { background: rgba(30,158,93,0.15); color:#1E9E5D; }
+  #fudo-sim .rehearsal-badge {
+    display:inline-flex; align-items:center; gap:6px; font-size: 10.5px; text-transform:uppercase;
+    letter-spacing:0.08em; color: #1a1a1a; background: var(--gold); border-radius: 6px;
+    padding: 4px 9px; margin-bottom: 10px; font-weight:800;
+  }
+</style>
+
+<div id="fudo-sim">
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-mark">F</div>
+      <div>
+        <div class="brand-title" id="fs-topbar-tag">Ring de negociación</div>
+        <div class="brand-sub" id="fs-topbar-sub">Elegí una categoría para empezar</div>
+      </div>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num hud-font" id="fs-points">0</div><div class="lbl">Puntos</div></div>
+      <div class="stat"><div class="num hud-font" id="fs-level-num">1</div><div class="lbl">Nivel</div></div>
+    </div>
+  </div>
+
+  <!-- PICKER -->
+  <div class="picker" id="fs-picker">
+    <div class="picker-title">Ring de negociación FUDO</div>
+    <div class="picker-sub">¿Qué querés practicar hoy?</div>
+    <div class="cat-desc" style="margin-bottom:16px;">Cada categoría tiene un banco de casos reales (anonimizados). Elegís la categoría y después cuál de los 4 casos activos de este mes querés practicar. Una vez por mes el banco de casos activos rota.</div>
+    <div class="cat-grid">
+      <div class="cat-card vt" data-cat="venta">
+        <div class="cat-tag">Venta</div>
+        <div class="cat-name">Objeción de precio</div>
+        <div class="cat-desc">Un prospecto compara FUDO con un competidor más barato y duda antes de firmar.</div>
+      </div>
+      <div class="cat-card rt" data-cat="retencion">
+        <div class="cat-tag">Retención</div>
+        <div class="cat-name">Pedido de baja</div>
+        <div class="cat-desc">Un cliente activo pide cancelar o pausar el servicio, con distintos grados de frustración.</div>
+      </div>
+      <div class="cat-card rc" data-cat="recupero">
+        <div class="cat-tag">Recupero</div>
+        <div class="cat-name">Cuenta inactiva</div>
+        <div class="cat-desc">Reactivación de una cuenta bloqueada o pausada.</div>
+      </div>
+      <div class="cat-card up" data-cat="upselling">
+        <div class="cat-tag">Up-selling</div>
+        <div class="cat-name">Expansión de cuenta</div>
+        <div class="cat-desc">Un cliente conforme crece (nueva sucursal, más terminales) y hay que ofrecerle el paso siguiente.</div>
+      </div>
+    </div>
+
+    <details class="refpanel admin-panel rehearsal">
+      <summary>🎯 Preparar mi próxima llamada real (pegar transcripción de Intercom)</summary>
+      <div class="refbody">
+        <p style="margin-top:0;">Pegá acá la conversación real (copiada de Intercom) del cliente con el que vas a hablar. Se genera un caso de repaso personal para practicar antes de la llamada — no se suma al banco compartido, solo queda en tu sesión.</p>
+        <textarea id="fs-prep-transcript" placeholder="Pegá la transcripción real acá..."></textarea>
+        <label><input type="checkbox" id="fs-prep-anon" checked> Anonimizar nombres del cliente/negocio antes de simular</label>
+        <select id="fs-prep-cat">
+          <option value="venta">Venta</option>
+          <option value="retencion">Retención</option>
+          <option value="recupero">Recupero</option>
+          <option value="upselling">Up-selling</option>
+        </select>
+        <button class="admin-btn" id="fs-prep-generate">Generar caso de repaso</button>
+        <div id="fs-prep-status" style="margin-top:8px; font-size:11.5px; color: var(--bone-dim);"></div>
+      </div>
+    </details>
+
+    <details class="refpanel admin-panel">
+      <summary>⚙️ Admin — sumar casos al banco de entrenamiento compartido</summary>
+      <div class="refbody">
+        <p style="margin-top:0;">Este archivo no tiene ni puede tener credenciales de Intercom (por seguridad, quedarían expuestas a cualquiera que lo abra). Cargá acá el ID o URL de la conversación real y va a una cola compartida. Para que se sumen de verdad al banco del equipo, escribile a Claude en el chat: <i>"procesá la cola de casos de Intercom"</i> — Claude las trae desde Intercom, las anonimiza y las agrega a la próxima versión del simulador.</p>
+        <input type="text" id="fs-admin-url" placeholder="ID o URL de la conversación de Intercom">
+        <select id="fs-admin-cat">
+          <option value="venta">Venta</option>
+          <option value="retencion">Retención</option>
+          <option value="recupero">Recupero</option>
+          <option value="upselling">Up-selling</option>
+        </select>
+        <textarea id="fs-admin-notes" placeholder="Notas opcionales: por qué este caso es útil para entrenar"></textarea>
+        <button class="admin-btn blue" id="fs-admin-add">+ Agregar a la cola</button>
+        <div id="fs-admin-queue" style="margin-top:10px;"></div>
+      </div>
+    </details>
+  </div>
+
+  <!-- CASE PICKER (4 casos activos del mes dentro de una categoría) -->
+  <div class="picker" id="fs-case-picker" style="display:none;">
+    <button class="switch-btn" id="fs-case-back" style="margin-bottom:14px;">← Elegir otra categoría</button>
+    <div class="picker-title" id="fs-case-picker-tag">Venta · Objeción de precio</div>
+    <div class="picker-sub">Elegí con qué caso practicar</div>
+    <div class="month-badge" id="fs-case-month-badge" style="display:inline-flex; margin-bottom:14px;">📅 Casos activos de agosto 2026</div>
+    <div class="cat-grid" id="fs-case-grid"></div>
+  </div>
+
+  <!-- SIMULATION -->
+  <div class="body" id="fs-body" style="display:none;">
+    <div class="main">
+      <button class="switch-btn" id="fs-switch" style="margin-bottom:12px;">← Elegir otro caso</button>
+      <div class="month-badge" id="fs-month-badge">📅 Caso de agosto 2026</div>
+      <div class="rehearsal-badge" id="fs-rehearsal-badge" style="display:none;">🎯 Modo repaso personal — no forma parte del banco compartido</div>
+
+      <div class="persona">
+        <div class="persona-avatar" id="fs-persona-avatar">V</div>
+        <div>
+          <div class="persona-name" id="fs-persona-name"></div>
+          <div class="persona-desc" id="fs-persona-desc"></div>
+        </div>
+      </div>
+
+      <details class="refpanel">
+        <summary>📚 Marco teórico de negociación usado acá</summary>
+        <div class="refbody">
+          <div class="theory-item"><b>Empatía táctica y preguntas calibradas</b> — Chris Voss (Never Split the Difference): reflejar (mirroring), nombrar la emoción del cliente (labeling) y preguntar con "cómo"/"qué" para que sienta que tiene el control.</div>
+          <div class="theory-item"><b>SPIN Selling</b> — Neil Rackham: indagar Situación, Problema, Implicación y Necesidad-beneficio antes de argumentar valor.</div>
+          <div class="theory-item"><b>Sentir-Sentido-Descubierto (Feel-Felt-Found)</b>: validar la objeción, mostrar que otros clientes sintieron lo mismo, compartir qué encontraron.</div>
+          <div class="theory-item"><b>Negociación basada en intereses</b> — Fisher &amp; Ury (Getting to Yes): separar a la persona del problema, enfocarse en intereses reales (no posiciones), conocer tu mejor alternativa antes de ceder margen.</div>
+          <div class="theory-item"><b>Método HEARD para clientes enojados o casos complejos</b>: Escuchar sin interrumpir, Empatizar con la frustración, Disculparse por la experiencia (aunque no sea "culpa" de uno), Resolver con un paso concreto, y Diagnosticar la causa de fondo para que no se repita.</div>
+          <div class="theory-item"><b>Separar a la persona del problema en conflictos difíciles</b>: cuando el cliente está enojado, no tomarlo como algo personal ni ponerse a la defensiva — el objetivo es resolver el problema, no "ganar" la discusión. Si el cliente cruza a un trato irrespetuoso, se puede poner un límite con firmeza y calma sin dejar de ofrecer ayuda.</div>
+        </div>
+      </details>
+
+      <div class="tension-wrap">
+        <div class="tension-label"><span id="fs-tension-left">Riesgo de pérdida</span><span id="fs-tension-right">Cierre probable</span></div>
+        <div class="tension-track"><div class="tension-fill" id="fs-tension"></div></div>
+        <div class="tension-tags"><span id="fs-tension-pct">50%</span><span id="fs-tension-note">probabilidad de avanzar</span></div>
+      </div>
+
+      <div class="chat" id="fs-chat"></div>
+      <div id="fs-loading" class="loading" style="display:none;">Escribiendo…</div>
+
+      <div class="quickrow" id="fs-quickrow"></div>
+
+      <div class="inputrow">
+        <textarea id="fs-input" placeholder="Escribí tu respuesta al cliente…"></textarea>
+        <button class="send" id="fs-send">Enviar</button>
+      </div>
+      <button class="end" id="fs-end">Cerrar simulación y ver evaluación</button>
+
+      <div id="fs-scorecard"></div>
+    </div>
+
+    <div class="side">
+      <h4>Tu progreso</h4>
+      <div class="level-badge">
+        <div class="level-ring" id="fs-level-ring">1</div>
+        <div>
+          <div class="level-name" id="fs-level-name">Novato</div>
+          <div class="level-next" id="fs-level-next">40 pts para Negociador</div>
+        </div>
+      </div>
+
+      <div class="streak"><span class="flame">🔥</span><span id="fs-streak-text">Racha: 1 semana</span></div>
+
+      <div class="mission">
+        <div class="mission-title">Misión del mes</div>
+        <div class="mission-track"><div class="mission-fill" id="fs-mission-fill" style="width:0%"></div></div>
+        <div class="mission-note" id="fs-mission-note">0 / 3 simulaciones con score 8+</div>
+      </div>
+
+      <h4>Liga de este mes</h4>
+      <div id="fs-leaderboard-rows">
+        <div class="leaderboard-row" style="color:var(--bone-dim);">Cargando liga...</div>
+      </div>
+
+      <button class="switch-btn" id="fs-reset" style="width:100%; margin-top:16px;">↺ Reiniciar mi progreso</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  // ---------- Conexión a Supabase (proyecto "Entrenamiento Comercial") ----------
+  const SUPABASE_URL = 'https://nsgvyjbagqrapcofqfkl.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_m-9--qlYZEjEtg6_e36Dkg_15GBRokF';
+
+  async function sb(path, options) {
+    options = options || {};
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+      ...options,
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_KEY,
+        'Content-Type': 'application/json',
+        ...(options.headers || {}),
+      },
+    });
+    if (!res.ok) {
+      const text = await res.text().catch(() => '');
+      throw new Error('Supabase ' + res.status + ': ' + text);
+    }
+    const text = await res.text();
+    return text ? JSON.parse(text) : null;
+  }
+
+  function monthKey() {
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+  }
+
+  // Identidad simple del ejecutivo (sin login real): un nombre + un id persistido en el navegador.
+  let repId = null;
+  let repName = null;
+  async function ensureRep() {
+    try {
+      repId = localStorage.getItem('fudo_rep_id');
+      repName = localStorage.getItem('fudo_rep_name');
+    } catch (e) { /* localStorage puede fallar en algunos contextos embebidos */ }
+    if (repId && repName) return;
+    let name = '';
+    while (!name) {
+      name = (window.prompt('¿Cómo te llamás? (aparece en la liga del equipo)') || '').trim();
+    }
+    try {
+      const rows = await sb('reps', {
+        method: 'POST',
+        headers: { 'Prefer': 'return=representation' },
+        body: JSON.stringify({ name }),
+      });
+      repId = rows[0].id;
+      repName = name;
+      localStorage.setItem('fudo_rep_id', repId);
+      localStorage.setItem('fudo_rep_name', repName);
+    } catch (e) {
+      console.error('No se pudo crear el ejecutivo en Supabase', e);
+    }
+  }
+
+  const chatEl = document.getElementById('fs-chat');
+  const inputEl = document.getElementById('fs-input');
+  const sendBtn = document.getElementById('fs-send');
+  const endBtn = document.getElementById('fs-end');
+  const loadingEl = document.getElementById('fs-loading');
+  const tensionFill = document.getElementById('fs-tension');
+  const tensionPct = document.getElementById('fs-tension-pct');
+  const quickrowEl = document.getElementById('fs-quickrow');
+
+  const LEVELS = [
+    { name: 'Novato', min: 0 },
+    { name: 'Negociador', min: 40 },
+    { name: 'Cerrador', min: 120 },
+    { name: 'Maestro FUDO', min: 300 },
+  ];
+
+  let state = { points: 0, missionDone: 0, streak: 1 };
+  let messages = []; // {role, content} — content siempre texto plano (sin JSON) para mantener el contexto limpio
+  let ended = false;
+  let currentScenario = null;
+
+  const PROGRESS_KEY = 'fudo-sim-progress';
+
+  // ---- Respuestas rápidas (plantillas editables, no se envían solas) ----
+  const GENERIC_QUICK = [
+    { label: '🪞 Reflejar (mirroring)', text: 'A ver si te entendí bien: ' },
+    { label: '🏷️ Nombrar la emoción', text: 'Entiendo que esto te genere ' },
+    { label: '❓ Pregunta calibrada', text: '¿Qué es lo que más te preocupa de esto? ' },
+    { label: '📖 Feel-Felt-Found', text: 'Entiendo cómo te sentís. Otros clientes sintieron lo mismo al principio, y lo que encontraron fue que ' },
+    { label: '🌡️ Des-escalar (HEARD)', text: 'Entiendo tu frustración y quiero ayudarte a resolverlo. Contame bien qué pasó para poder ayudarte de la forma correcta. ' },
+  ];
+
+  function renderQuickReplies(catId) {
+    quickrowEl.innerHTML = GENERIC_QUICK.map((q, i) =>
+      `<button type="button" class="qbtn" data-idx="${i}">${q.label}</button>`
+    ).join('');
+    quickrowEl.querySelectorAll('.qbtn').forEach((btn, i) => {
+      btn.addEventListener('click', () => {
+        inputEl.value = (inputEl.value ? inputEl.value + ' ' : '') + GENERIC_QUICK[i].text;
+        inputEl.focus();
+      });
+    });
+  }
+
+  // ---- Banco de casos: 4 por categoría, inspirados en patrones reales de Intercom/Drive de FUDO ----
+  // (situaciones anonimizadas — nombres, negocios y datos de contacto ficticios).
+  const CASES = {
+    venta: [
+      {
+        persona: { avatar: 'V', name: 'Vanina Ríos — hamburguesería (Rosario, AR)',
+          desc: 'Evaluando cambiar de sistema. Encontró un POS más barato y no está segura de justificar la diferencia.' },
+        tensionLabels: { left: 'Riesgo de pérdida', right: 'Cierre probable' },
+        opening: 'Hola, gracias por llamar. Mirá, ya vi otro sistema que me sale bastante más barato que FUDO... no sé si vale tanto la diferencia, la verdad.',
+        openingProb: 45,
+        system: `Sos Vanina Ríos, dueña de una hamburguesería en Rosario, Argentina. Estás evaluando FUDO pero encontraste un competidor más barato. Sos escéptica pero no hostil; si el vendedor da un buen argumento de valor podés ceder terreno, pero si solo repite el precio o cede descuento fácil, te mantenés firme o pedís más descuento.`,
+      },
+      {
+        persona: { avatar: 'A', name: 'Alan Valenzuela — emprendimiento gastronómico chico (AR)',
+          desc: 'Recién está por arrancar. Consultó si hay un plan más económico porque el negocio es muy chico todavía.' },
+        tensionLabels: { left: 'No contrata', right: 'Contrata' },
+        opening: 'Hola, quería saber si tienen algún plan más económico. Recién estamos arrancando, somos un emprendimiento chico y se nos hace difícil justificar el costo.',
+        openingProb: 35,
+        system: `Sos Alan Valenzuela, estás por abrir un emprendimiento gastronómico chico en Argentina. Consultaste por un plan más económico porque el negocio recién arranca y el flujo de caja es ajustado. No sos desconfiado del producto, el tema es presupuesto en esta etapa inicial. Si el vendedor te ofrece algo escalonado (empezar chico y crecer) o te hace ver el costo de no tener un sistema ordenado desde el día uno, podés avanzar. Si solo insiste en las funciones sin hablar de presupuesto, dudás.`,
+      },
+      {
+        persona: { avatar: 'G', name: 'Gianfranco B. — negocio que arranca a cobrar con tarjeta (AR)',
+          desc: 'Quiere sumar cobro con tarjeta pero el costo del servicio de pagos le parece muy caro para su volumen actual.' },
+        tensionLabels: { left: 'No contrata', right: 'Contrata' },
+        opening: 'Hola, queremos empezar a usar el sistema de pagos con tarjeta, pero la verdad es que nos parece muy caro para lo que facturamos hoy.',
+        openingProb: 30,
+        system: `Sos Gianfranco, dueño de un local gastronómico chico en Argentina que quiere aceptar pagos con tarjeta a través de FUDO Pagos, pero el costo te parece alto para tu facturación actual. No rechazás la herramienta, cuestionás el número. Si el vendedor te muestra el retorno concreto (más ventas por aceptar tarjeta, menos fricción en caja), podés avanzar. Si solo repite "es lo que cuesta", te frenás.`,
+      },
+      {
+        persona: { avatar: 'N', name: 'Nadia Cortez — bar de tapas (Mendoza, AR)',
+          desc: 'Le gusta el producto pero no quiere firmar un contrato largo — le genera desconfianza atarse por mucho tiempo.' },
+        tensionLabels: { left: 'No firma', right: 'Firma' },
+        opening: 'Me gustó todo lo que me mostraste, pero la verdad no quiero atarme a un contrato largo. Prefiero ver cómo funciona antes de comprometerme tanto tiempo.',
+        openingProb: 50,
+        system: `Sos Nadia Cortez, dueña de un bar de tapas en Mendoza, Argentina. Te convenció el producto FUDO pero te genera dudas comprometerte a un contrato largo — preferirías algo más corto para "probar" primero. Si el vendedor reencuadra el compromiso como beneficio (mejores condiciones, soporte prioritario) en vez de solo insistir en que "no pasa nada", te tranquilizás y avanzás. Si te presiona a firmar sin abordar tu inquietud puntual sobre el plazo, pedís más tiempo para pensarlo.`,
+      },
+    ],
+    retencion: [
+      {
+        persona: { avatar: 'D', name: 'Delia Ferreyra — rotisería (Córdoba, AR)',
+          desc: 'Clienta activa hace 2 años. Pide dar de baja porque "ya casi no lo usa" desde que achicó el local.' },
+        tensionLabels: { left: 'Se da de baja', right: 'Se queda', note: 'probabilidad de retención' },
+        opening: 'Hola, che, quiero dar de baja el sistema. Desde que achicamos el local ya casi no lo uso, no tiene sentido seguir pagando.',
+        openingProb: 30,
+        system: `Sos Delia Ferreyra, dueña de una rotisería en Córdoba, clienta de FUDO hace 2 años. Pedís dar de baja porque achicaste el local y sentís que ya no usás el sistema lo suficiente para justificar el costo. No es plata, es uso. Si el ejecutivo entiende el motivo real y te propone algo concreto (pausar en vez de dar de baja, ayudarte a usarlo mejor, o un ajuste razonable) podés reconsiderar. Si solo insiste en que "no te vayas" sin resolver el motivo real, mantenés la baja.`,
+      },
+      {
+        persona: { avatar: 'J', name: 'Julio Hernández — chocolatería (México)',
+          desc: 'Tuvo que cerrar el local temporalmente y pide suspender el servicio, no necesariamente cancelarlo del todo.' },
+        tensionLabels: { left: 'Cancela todo', right: 'Solo pausa', note: 'probabilidad de mantener la cuenta viva' },
+        opening: 'Buenas tardes, necesito suspender mi servicio. Tuve que cerrar el local de forma temporal y ahora mismo no le estoy dando uso.',
+        openingProb: 50,
+        system: `Sos Julio Hernández, dueño de una chocolatería en México. Tu local cerró temporalmente y escribiste pidiendo suspender el servicio de FUDO. No estás decidido a cancelar para siempre, solo no querés pagar mientras el local está cerrado. Si el ejecutivo te ofrece una pausa real (sin perder tu configuración/datos) o alguna alternativa concreta mientras tanto, te resulta perfecto. Si insiste en que sigas pagando el plan completo "por las dudas", te frustrás y es más probable que termines cancelando del todo.`,
+      },
+      {
+        persona: { avatar: 'P', name: 'Patricio Nutrigo — franquicia de viandas (AR)',
+          desc: 'Le llegó una factura de $70.300 y le pareció muy cara. Pide un plan más económico antes de decidir si se va.' },
+        tensionLabels: { left: 'Baja a un plan chico / se va', right: 'Se mantiene', note: 'probabilidad de conservar el valor de la cuenta' },
+        opening: 'Hola, necesito un plan más económico. Me acaban de cobrar $70.300 y la verdad me resulta muy caro.',
+        openingProb: 35,
+        system: `Sos Patricio, dueño de una franquicia de viandas en Argentina. Te acaban de cobrar $70.300 por FUDO y te pareció muy caro; pedís un plan más económico. No necesariamente querés irte, pero si no te dan una opción concreta vas a bajar de plan igual (lo que reduce funcionalidades) o evaluar irte. Si el ejecutivo te ayuda a entender qué estás pagando y encuentra un ajuste razonable, te quedás en un plan de mayor valor. Si solo te dice "es el precio de lista", bajás a lo más barato posible o te vas.`,
+      },
+      {
+        persona: { avatar: 'GI', name: 'Gonzalo Ibarra — cadena de sándwiches, 3 locales (AR)',
+          desc: 'Migrado recientemente de Tienda Online a Tu Delivery. Descubrió que colegas con otras cuentas todavía tienen Tienda Online gratis/plus y siente que es injusto pagar de más.' },
+        tensionLabels: { left: 'Amenaza con irse', right: 'Se queda conforme' },
+        opening: 'Hola, che, quería preguntarte algo. Me migraron a Tu Delivery pero tengo colegas con cuentas que todavía tienen Tienda Online gratis. ¿Por qué yo tengo que pagar más y ellos no?',
+        openingProb: 40,
+        system: `Sos Gonzalo Ibarra, dueño de una cadena de sándwiches con 3 locales en Argentina. Migraste de Tienda Online a Tu Delivery y descubriste que otras cuentas (de colegas) todavía tienen Tienda Online gratuita o Plus, lo que te parece injusto. Arrancás escéptico pero no hostil: solo comparás, no amenazás todavía. Si el ejecutivo te explica bien la diferencia entre cuentas y muestra que entiende tu reclamo, te calmás. Si solo te dan una respuesta genérica sin abordar tu punto de la inequidad, tu frustración escala y podés llegar a decir que preferís volver a Tienda Online o dar de baja. Tenés 3 locales, así que sos una cuenta de peso — un ejecutivo atento podría detectar eso y ofrecerte algo acorde a tu volumen, no una respuesta genérica de manual.`,
+      },
+    ],
+    recupero: [
+      {
+        persona: { avatar: 'R', name: 'Ramiro Beltrán — taquería (México)',
+          desc: 'Cuenta bloqueada por falta de pago. Nunca terminó de habilitar el cobro con tarjeta y dejó todo a medio camino.' },
+        tensionLabels: { left: 'Se pierde la cuenta', right: 'Reactiva' },
+        opening: 'Hola, sí, disculpa, sé que ando atrasado con lo de mi cuenta. Se me juntaron varias cosas y no terminé de subir mis documentos para el cobro con tarjeta.',
+        openingProb: 40,
+        system: `Sos Ramiro Beltrán, dueño de una taquería en México, con la cuenta de FUDO bloqueada por falta de pago. Nunca terminaste de subir la documentación para habilitar el cobro con tarjeta. No sos hostil, estás medio abrumado y con excusas. Si el ejecutivo te da un paso concreto y fácil de seguir (con fecha), avanzás. Si solo te presiona genéricamente, seguís postergando.`,
+      },
+      {
+        persona: { avatar: 'M', name: 'Mario Puentes — resto-bar (Chile/LatAm)',
+          desc: 'Cuenta pausada por un problema de pago que ya resolvió. Escribe activamente pidiendo reactivarla.' },
+        tensionLabels: { left: 'No reactiva', right: 'Reactiva ya' },
+        opening: 'Hola, quiero reactivar mi cuenta por favor. Estaba complicado para pagar pero ya tengo el dinero disponible.',
+        openingProb: 65,
+        system: `Sos Mario Puentes, dueño de un resto-bar. Tu cuenta de FUDO quedó pausada porque no pudiste pagar, pero ahora ya tenés el dinero y escribiste vos mismo pidiendo reactivarla. Estás con buena predisposición — el riesgo acá es que el ejecutivo pierda la oportunidad de asegurar el pago actualizado y ofrecerte algo mejor. Si te atienden rápido y claro, cerrás en el momento. Si te hacen dar muchas vueltas o no te ofrecen nada, te enfría un poco.`,
+      },
+      {
+        persona: { avatar: 'L', name: 'Llarela (Admin) — gastronomía múltiples locales (AR)',
+          desc: 'Quiere reactivar la cuenta pero no está segura de qué plan le conviene ahora — oportunidad de recomendar bien y hasta subir de plan.' },
+        tensionLabels: { left: 'No reactiva', right: 'Reactiva con el plan correcto' },
+        opening: 'Hola, quiero reactivar la cuenta pero antes quería hacerte unas preguntas sobre qué plan me conviene ahora.',
+        openingProb: 55,
+        system: `Sos Llarela, administrás la cuenta de FUDO de un grupo gastronómico en Argentina. Tu cuenta está inactiva y querés reactivarla, pero no estás segura de qué plan te conviene hoy. Sos una clienta con buena predisposición pero necesitás que te asesoren bien. Si el ejecutivo hace un par de preguntas sobre cómo opera hoy tu negocio antes de recomendarte un plan, confiás y avanzás rápido — incluso podés aceptar un plan superior si tiene sentido. Si te tiran el plan más caro sin preguntar nada, dudás y pedís pensarlo.`,
+      },
+      {
+        persona: { avatar: 'T', name: 'Talía Almanza — ex-clienta que quiere volver con un plan específico (AR)',
+          desc: 'Cuenta cerrada hace tiempo. Escribe diciendo que le interesa reactivar puntualmente con el Plan Pro.' },
+        tensionLabels: { left: 'No reactiva', right: 'Reactiva con Plan Pro' },
+        opening: 'Hola, quiero reactivar mi cuenta. Ya fui clienta de ustedes antes, y ahora me interesa reactivarla con el Plan Pro.',
+        openingProb: 60,
+        system: `Sos Talía Almanza, fuiste clienta de FUDO y ahora escribís para reactivar tu cuenta puntualmente con el Plan Pro. Tenés una idea bastante formada de lo que querés. Si el ejecutivo valida tu pedido, entiende por qué elegís ese plan (para confirmar que realmente se ajusta a tu negocio hoy) y te da un camino simple para activarlo, cerrás rápido y con buena predisposición. Si el ejecutivo ignora tu pedido puntual y trata de venderte otra cosa sin preguntarte por qué querés el Plan Pro, te genera desconfianza y pedís pensarlo.`,
+      },
+      {
+        persona: { avatar: 'S', name: 'Sofía Ramallo — negocio gastronómico que nunca arrancó a operar (AR)',
+          desc: 'Paga FUDO hace varios meses pero nunca lo puso en marcha por falta de tiempo. Paga doble abono (su sistema anterior + FUDO sin usar) y pide pausar todo.' },
+        tensionLabels: { left: 'Da de baja por frustración', right: 'Se queda y completa la implementación', note: 'riesgo de churn por costo hundido' },
+        opening: 'Buen día, por el momento aún no hemos comenzado a utilizar el sistema. Hace varios meses que lo venimos pagando y no pudimos inicializarlo por una cuestión de tiempos. Quisiera saber si se puede pausar de algún modo, o al menos todos los adicionales, porque honestamente estamos con doble abono sin sentido: el sistema actual más el de ustedes que nunca inicializamos.',
+        openingProb: 30,
+        system: `Sos Sofía Ramallo, dueña de un negocio gastronómico en Argentina. Contrataste FUDO hace varios meses pero nunca llegaste a implementarlo por falta de tiempo — seguís operando con tu sistema anterior y pagando los dos abonos a la vez, lo que te frustra. Pedís pausar el servicio o al menos los módulos adicionales. FUDO no ofrece pausar cuentas activas, pero sí se puede: (a) dejar la cuenta solo con el plan base sin módulos para bajar el costo mientras completás la implementación, y (b) en este momento hay una promoción vigente de 50% OFF en planes PRO por 2 meses. Si el ejecutivo te ofrece esa combinación concreta (reducir a lo esencial + la promo vigente) y además te ayuda a destrabar por qué no arrancaste (ofreciendo una capacitación o próximo paso concreto), aceptás y tu frustración baja mucho. Si el ejecutivo solo te dice "no se puede pausar" sin ofrecerte una alternativa real, tu frustración sube y es más probable que termines dando de baja por sentir que tirás la plata.`,
+      },
+    ],
+    upselling: [
+      {
+        persona: { avatar: 'F', name: 'Franco Medina — bar (2 años como cliente FUDO, AR)',
+          desc: 'Cliente conforme que va a abrir una segunda sucursal y pregunta cómo escalar el sistema.' },
+        tensionLabels: { left: 'Se queda como está', right: 'Contrata el upgrade' },
+        opening: 'Hola, buenas. Estamos por abrir una segunda sucursal del bar y quería preguntar cómo hacemos con FUDO ahí, si abrimos otra cuenta o cómo sería.',
+        openingProb: 55,
+        system: `Sos Franco Medina, dueño de un bar en Argentina, cliente conforme de FUDO hace 2 años. Vas a abrir una segunda sucursal y estás averiguando cómo escalar (plan multi-sucursal, terminales adicionales). Estás abierto a invertir si ves valor claro, pero cuidás los costos adicionales. Si te explican bien el beneficio de centralizar ambos locales con un camino simple, avanzás. Si solo te venden "más funciones" sin beneficio concreto, dudás y pedís pensarlo.`,
+      },
+      {
+        persona: { avatar: 'J', name: 'Jaime Thome — pizzería (2 locales, AR)',
+          desc: 'Va a abrir un segundo local y pide "clonar" la cuenta para ahorrar tiempo, sin saber que existe un plan multi-sucursal.' },
+        tensionLabels: { left: 'Solo pide clonar gratis', right: 'Contrata plan multi-sucursal' },
+        opening: 'Buenos días, estamos por abrir otra sucursal y queremos ahí. Necesitamos ayuda para clonar nuestros datos y ahorrar tiempo.',
+        openingProb: 40,
+        system: `Sos Jaime Thome, dueño de una pizzería en Argentina que va a abrir una segunda sucursal. Tu pedido inicial es que te "clonen" la configuración actual, para no cargar todo de nuevo. Si el ejecutivo te propone directamente un "upgrade" sin explicarte qué gana tu operación con eso, te suena a venta forzada. Si te muestran un beneficio operativo concreto de manejar los 2 locales desde un mismo lugar, te interesa evaluarlo.`,
+      },
+      {
+        persona: { avatar: 'L', name: 'Lautaro Bossina — bar (2 años operando, AR)',
+          desc: 'Pide formalmente una cotización para una segunda sucursal — intención de compra explícita, listo para avanzar rápido si el número cierra.' },
+        tensionLabels: { left: 'No cierra hoy', right: 'Cierra hoy' },
+        opening: 'Buenas, soy propietario de un bar hace ya dos años y estoy en gestiones para abrir otra sucursal. Me gustaría que me pasen información y cotización.',
+        openingProb: 60,
+        system: `Sos Lautaro Bossina, dueño de un bar en Argentina hace 2 años, cliente conforme de FUDO. Estás en trámites concretos para abrir una segunda sucursal y pediste activamente una cotización. Si te dan un número claro y un camino simple, cerrás rápido. Si te hacen dar vueltas o no contestan lo que preguntaste, te frenás y decís que lo vas a evaluar con calma.`,
+      },
+      {
+        persona: { avatar: 'C', name: 'Carla Núñez — cervecería con mucho movimiento (AR)',
+          desc: 'Su único local creció mucho y la caja única genera cuellos de botella; pregunta por agregar una terminal adicional.' },
+        tensionLabels: { left: 'No suma terminal', right: 'Suma terminal' },
+        opening: 'Hola, tenemos un solo local pero cada vez vendemos más y con una sola caja se nos arma cola. ¿Se puede sumar otra terminal a la misma cuenta?',
+        openingProb: 60,
+        system: `Sos Carla Núñez, dueña de una cervecería en Argentina con un único local que creció mucho en volumen. Con una sola terminal/caja se generan cuellos de botella en los momentos pico. Preguntás si se puede sumar otra terminal a la misma cuenta. Estás bastante convencida de que lo necesitás, así que si el ejecutivo te confirma cómo funciona y el costo, probablemente avances rápido. Si te complican el proceso o no te dan un precio claro, dudás y lo dejás para más adelante.`,
+      },
+    ],
+  };
+
+  const RUBRICS = {
+    venta: {
+      context: 'una negociación de venta de un sistema de punto de venta (FUDO) frente a una objeción del prospecto',
+      criteria: [
+        { key: 'reconocimiento', label: 'Reconocimiento de la objeción', weight: 15 },
+        { key: 'argumento_valor', label: 'Argumento de valor', weight: 30 },
+        { key: 'manejo_descuento', label: 'Manejo de presión de descuento', weight: 25 },
+        { key: 'cierre', label: 'Cierre / próximos pasos', weight: 20 },
+        { key: 'tono', label: 'Tono y empatía', weight: 10 },
+      ],
+    },
+    retencion: {
+      context: 'una negociación de retención de cuenta (cliente pidió dar de baja o pausar el servicio FUDO)',
+      criteria: [
+        { key: 'diagnostico', label: 'Diagnóstico del motivo real de baja', weight: 25 },
+        { key: 'propuesta', label: 'Propuesta de solución concreta', weight: 25 },
+        { key: 'manejo_objecion', label: 'Manejo de la objeción del cliente', weight: 20 },
+        { key: 'cierre', label: 'Cierre con compromiso claro', weight: 20 },
+        { key: 'tono', label: 'Tono y empatía', weight: 10 },
+      ],
+    },
+    recupero: {
+      context: 'un recupero de cuenta inactiva/bloqueada de FUDO',
+      criteria: [
+        { key: 'reconexion', label: 'Reconexión y diagnóstico de la pausa', weight: 20 },
+        { key: 'remocion_friccion', label: 'Remoción de la fricción real (trámite/pago)', weight: 30 },
+        { key: 'incentivo', label: 'Oferta o incentivo de reactivación', weight: 20 },
+        { key: 'cierre', label: 'Cierre con próximo paso y fecha concreta', weight: 20 },
+        { key: 'tono', label: 'Tono y empatía', weight: 10 },
+      ],
+    },
+    upselling: {
+      context: 'una venta de expansión / up-selling a un cliente FUDO que crece (nueva sucursal o más terminales)',
+      criteria: [
+        { key: 'necesidad', label: 'Identificación de la necesidad real de expansión', weight: 20 },
+        { key: 'propuesta_valor', label: 'Propuesta de valor del upgrade', weight: 30 },
+        { key: 'manejo_costo', label: 'Manejo de la objeción de costo adicional', weight: 20 },
+        { key: 'cierre', label: 'Cierre con próximos pasos concretos', weight: 20 },
+        { key: 'tono', label: 'Tono consultivo', weight: 10 },
+      ],
+    },
+  };
+
+  const TAG_LABELS = {
+    venta: 'Venta · Objeción de precio',
+    retencion: 'Retención · Pedido de baja',
+    recupero: 'Recupero · Cuenta inactiva',
+    upselling: 'Up-selling · Expansión de cuenta',
+  };
+
+  const COACH_INSTRUCTIONS = `
+Además de responder en personaje, tenés una segunda tarea silenciosa: evaluar el ÚLTIMO mensaje del EJECUTIVO usando técnicas reconocidas de negociación y ventas: empatía táctica, reflejo (mirroring), etiquetado de emociones (labeling) y preguntas calibradas de Chris Voss; el método SPIN Selling (situación, problema, implicación, necesidad-beneficio) de Neil Rackham; la técnica Sentir-Sentido-Descubierto para objeciones; la negociación basada en intereses de Fisher & Ury (separar a la persona del problema, enfocarse en intereses reales); y, si el cliente está enojado o el caso es complejo, el método HEARD (Escuchar, Empatizar, Disculparse, Resolver, Diagnosticar la causa de fondo).
+Devolvé SIEMPRE un JSON (nada de markdown, nada de texto fuera del JSON) con esta forma exacta:
+{"reply":"tu respuesta en personaje, 1-3 oraciones, español, sin markdown","prob":0-100,"coach_tip":"1 frase corta y accionable en español mencionando qué técnica podría haber usado, o null si el mensaje del ejecutivo ya fue sólido y no hay margen claro de mejora"}
+"prob" representa qué tan cerca está el cliente de avanzar (comprar, quedarse, reactivar o contratar el upgrade, según corresponda) a partir de lo que el ejecutivo acaba de decir.`;
+
+  function buildSystemPrompt(caseObj) {
+    let sys = caseObj.system + '\n' + COACH_INSTRUCTIONS;
+    return sys;
+  }
+
+  // ---------- Progreso (Supabase) ----------
+  async function loadProgress() {
+    await ensureRep();
+    if (repId) {
+      try {
+        const rows = await sb(`progress?rep_id=eq.${repId}&select=points,mission_done,streak`);
+        if (rows && rows.length) {
+          state = { points: rows[0].points, missionDone: rows[0].mission_done, streak: rows[0].streak };
+        } else {
+          await sb('progress', {
+            method: 'POST', headers: { 'Prefer': 'return=minimal' },
+            body: JSON.stringify({ rep_id: repId, points: 0, mission_done: 0, streak: 1 }),
+          });
+        }
+      } catch (e) { console.error('No se pudo leer el progreso de Supabase', e); }
+    }
+    renderStats();
+    loadLeaderboard();
+  }
+  async function saveProgress() {
+    if (!repId) return;
+    try {
+      await sb('progress?on_conflict=rep_id', {
+        method: 'POST',
+        headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+        body: JSON.stringify({
+          rep_id: repId, points: state.points, mission_done: state.missionDone,
+          streak: state.streak, updated_at: new Date().toISOString(),
+        }),
+      });
+    } catch (e) { console.error('No se pudo guardar el progreso en Supabase', e); }
+  }
+
+  async function logSessionAndScore(pointsEarned, score10, categoryId, caseName) {
+    if (!repId) return;
+    try {
+      await sb('sessions', {
+        method: 'POST', headers: { 'Prefer': 'return=minimal' },
+        body: JSON.stringify({
+          rep_id: repId, category: categoryId || 'repaso', case_name: caseName,
+          score: score10, points_earned: pointsEarned,
+        }),
+      });
+      const mk = monthKey();
+      const rows = await sb(`monthly_scores?rep_id=eq.${repId}&month_key=eq.${mk}&select=points`);
+      const current = (rows && rows[0] && rows[0].points) || 0;
+      await sb('monthly_scores?on_conflict=rep_id,month_key', {
+        method: 'POST', headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+        body: JSON.stringify({ rep_id: repId, month_key: mk, points: current + pointsEarned }),
+      });
+    } catch (e) { console.error('No se pudo registrar la sesión en Supabase', e); }
+    loadLeaderboard();
+  }
+
+  async function loadLeaderboard() {
+    const lbEl = document.getElementById('fs-leaderboard-rows');
+    if (!lbEl) return;
+    try {
+      const mk = monthKey();
+      const rows = await sb(`monthly_scores?month_key=eq.${mk}&select=points,rep_id,reps(name)&order=points.desc&limit=5`);
+      if (!rows || !rows.length) {
+        lbEl.innerHTML = '<div class="leaderboard-row" style="color:var(--bone-dim);">Todavía nadie sumó puntos este mes.</div>';
+        return;
+      }
+      lbEl.innerHTML = rows.map((r, i) => {
+        const isYou = r.rep_id === repId;
+        const name = isYou ? 'Vos' : ((r.reps && r.reps.name) || 'Ejecutivo');
+        return `<div class="leaderboard-row${isYou ? ' you' : ''}"><span>${i + 1}. ${escapeHtml(name)}</span><span>${r.points}</span></div>`;
+      }).join('');
+    } catch (e) {
+      lbEl.innerHTML = '<div class="leaderboard-row" style="color:var(--bone-dim);">No se pudo cargar la liga.</div>';
+    }
+  }
+  function levelFor(points) {
+    let idx = 0;
+    for (let i = 0; i < LEVELS.length; i++) if (points >= LEVELS[i].min) idx = i;
+    return idx;
+  }
+  function renderStats() {
+    document.getElementById('fs-points').textContent = state.points;
+    const idx = levelFor(state.points);
+    document.getElementById('fs-level-num').textContent = idx + 1;
+    document.getElementById('fs-level-ring').textContent = idx + 1;
+    document.getElementById('fs-level-name').textContent = LEVELS[idx].name;
+    const next = LEVELS[idx + 1];
+    document.getElementById('fs-level-next').textContent = next
+      ? (next.min - state.points) + ' pts para ' + next.name
+      : 'Nivel máximo alcanzado';
+    document.getElementById('fs-streak-text').textContent = 'Racha: ' + state.streak + (state.streak === 1 ? ' semana' : ' semanas');
+    const missionPct = Math.min(100, (state.missionDone / 3) * 100);
+    document.getElementById('fs-mission-fill').style.width = missionPct + '%';
+    document.getElementById('fs-mission-note').textContent = Math.min(state.missionDone,3) + ' / 3 simulaciones con score 8+';
+  }
+
+  function escapeHtml(str) {
+    return (str === null || str === undefined ? '' : str).toString()
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  function addMsg(role, text) {
+    const div = document.createElement('div');
+    div.className = 'msg ' + role;
+    if (role === 'coach') {
+      div.innerHTML = '<b>🧠 Instructor:</b> ' + escapeHtml(text);
+    } else {
+      div.textContent = text;
+    }
+    chatEl.appendChild(div);
+    chatEl.scrollTop = chatEl.scrollHeight;
+  }
+
+  function setTension(pct) {
+    tensionFill.style.width = pct + '%';
+    tensionPct.textContent = pct + '%';
+    tensionFill.style.background = pct < 35 ? 'var(--coral)' : (pct < 65 ? 'var(--gold)' : '#1E9E5D');
+  }
+
+  async function callClaude(systemPrompt, msgs, maxTokens) {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: maxTokens || 1000,
+        system: systemPrompt,
+        messages: msgs,
+      }),
+    });
+    const data = await res.json();
+    return (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('\n');
+  }
+
+  function parseJsonSafe(raw) {
+    const clean = raw.replace(/```json|```/g, '').trim();
+    return JSON.parse(clean);
+  }
+
+  async function sendMessage() {
+    const text = inputEl.value.trim();
+    if (!text || ended || !currentScenario) return;
+    inputEl.value = '';
+    sendBtn.disabled = true;
+    addMsg('rep', text);
+    messages.push({ role: 'user', content: text });
+    loadingEl.style.display = 'block';
+    try {
+      const raw = await callClaude(currentScenario.systemPrompt, messages, 350);
+      const parsed = parseJsonSafe(raw);
+      const replyText = (parsed.reply || '').toString();
+      messages.push({ role: 'assistant', content: replyText });
+      addMsg('buyer', replyText);
+      if (typeof parsed.prob === 'number') setTension(Math.max(0, Math.min(100, Math.round(parsed.prob))));
+      if (parsed.coach_tip && String(parsed.coach_tip).toLowerCase() !== 'null') {
+        addMsg('coach', parsed.coach_tip);
+      }
+    } catch (e) {
+      addMsg('system', 'No se pudo conectar con el simulador. Intentá de nuevo.');
+    }
+    loadingEl.style.display = 'none';
+    sendBtn.disabled = false;
+  }
+
+  async function endSimulation() {
+    if (ended || messages.length < 2) {
+      addMsg('system', 'Intercambiá al menos un par de mensajes antes de cerrar la simulación.');
+      return;
+    }
+    ended = true;
+    endBtn.disabled = true;
+    endBtn.textContent = 'Evaluando conversación…';
+
+    const rubric = currentScenario.rubric;
+    const transcript = messages.map((m, i) => (m.role === 'user' ? 'EJECUTIVO FUDO' : 'CLIENTE') + ' (turno ' + i + '): ' + m.content).join('\n');
+    const jsonShape = rubric.criteria.map(c => `"${c.key}":0-10`).join(',');
+    const rubricPrompt = `Evaluá esta negociación: ${rubric.context}.\nTranscripción con número de turno:\n${transcript}\n\nDevolvé SOLO un objeto JSON (sin markdown, sin texto adicional) con esta forma exacta:
+{${jsonShape},
+"feedback":"2-3 frases de feedback general concreto y accionable en español rioplatense",
+"momentos":[
+  {"turno":N,"dijo":"cita textual breve (máx 20 palabras) de lo que dijo el EJECUTIVO en ese turno","mejor":"qué debería haber dicho en su lugar, en 1 frase concreta","porque":"1 frase explicando por qué eso hubiera funcionado mejor con este cliente puntual, idealmente nombrando la técnica (mirroring, pregunta calibrada, SPIN, Feel-Felt-Found, método HEARD si el cliente estaba enojado, etc.)"}
+]}
+Elegí entre 2 y 3 momentos como máximo: los turnos del ejecutivo con mayor impacto en el resultado. Si lo hizo muy bien y no hay margen real de mejora en ningún turno, devolvé "momentos" como array vacío.`;
+
+    try {
+      const raw = await callClaude('Sos un evaluador experto en negociación comercial B2B, formado en los marcos de Chris Voss, SPIN Selling, Feel-Felt-Found, Fisher & Ury, y el método HEARD para manejo de clientes enojados.', [{ role: 'user', content: rubricPrompt }], 900);
+      const scores = parseJsonSafe(raw);
+      renderScorecard(scores, rubric);
+    } catch (e) {
+      document.getElementById('fs-scorecard').innerHTML = '<div class="scorecard"><div class="feedback-text">No se pudo generar la evaluación. Probá cerrar la simulación de nuevo.</div></div>';
+      ended = false;
+      endBtn.disabled = false;
+      endBtn.textContent = 'Cerrar simulación y ver evaluación';
+    }
+  }
+
+  function renderScorecard(scores, rubric) {
+    let weightedTotal = 0;
+    let rows = '';
+    rubric.criteria.forEach(c => {
+      const v = Math.max(0, Math.min(10, Number(scores[c.key]) || 0));
+      weightedTotal += v * (c.weight / 100);
+      rows += `<div class="crit-row">
+        <div class="crit-top"><span>${c.label}</span><span>${v}/10</span></div>
+        <div class="crit-track"><div class="crit-fill" style="width:${v*10}%"></div></div>
+      </div>`;
+    });
+    const score10 = Math.round(weightedTotal * 10) / 10;
+    let pointsEarned = 10;
+    if (score10 >= 8) pointsEarned += 25;
+    else if (score10 >= 6) pointsEarned += 15;
+    else pointsEarned += 5;
+
+    state.points += pointsEarned;
+    if (score10 >= 8) state.missionDone = Math.min(3, state.missionDone + 1);
+    saveProgress();
+    logSessionAndScore(pointsEarned, score10, currentCatId, currentScenario && currentScenario.persona ? currentScenario.persona.name : null);
+    renderStats();
+
+    let momentsHtml = '';
+    const moments = Array.isArray(scores.momentos) ? scores.momentos : [];
+    if (moments.length) {
+      momentsHtml = '<div class="moments"><h4>Momentos clave para revisar</h4>' + moments.map(m => `
+        <div class="moment">
+          <div class="moment-said">Vos dijiste (turno ${escapeHtml(m.turno)}):<span class="quote">"${escapeHtml(m.dijo)}"</span></div>
+          <div class="moment-better">Podrías haber dicho:<span class="quote">"${escapeHtml(m.mejor)}"</span></div>
+          <div class="moment-why">${escapeHtml(m.porque)}</div>
+        </div>
+      `).join('') + '</div>';
+    } else {
+      momentsHtml = '<div class="moments"><h4>Momentos clave para revisar</h4><div class="moment-why">No se detectaron momentos con margen claro de mejora — buen manejo general de la conversación.</div></div>';
+    }
+
+    document.getElementById('fs-scorecard').innerHTML = `
+      <div class="scorecard">
+        <h3>Resultado: ${score10}/10</h3>
+        ${rows}
+        <div class="feedback-text">${escapeHtml(scores.feedback)}</div>
+        <div class="points-earned">+${pointsEarned} puntos ganados</div>
+        ${momentsHtml}
+      </div>
+    `;
+    endBtn.textContent = 'Simulación finalizada';
+  }
+
+  // ---------- Rotación mensual: 4 casos activos por categoría, elegís cuál practicar ----------
+  // Si el banco de una categoría tiene más de 4 casos, cada mes se activa una ventana distinta de 4.
+  function getActiveCasesForMonth(catId) {
+    const pool = CASES[catId];
+    const now = new Date();
+    const monthKey = now.getFullYear() * 12 + now.getMonth();
+    const monthLabel = now.toLocaleDateString('es-AR', { month: 'long', year: 'numeric' });
+    if (pool.length <= 4) return { cases: pool.slice(), monthLabel };
+    const start = monthKey % pool.length;
+    const cases = [];
+    for (let i = 0; i < 4; i++) cases.push(pool[(start + i) % pool.length]);
+    return { cases, monthLabel };
+  }
+
+  let currentCatId = null;
+
+  function showCasePicker(catId) {
+    currentCatId = catId;
+    const { cases, monthLabel } = getActiveCasesForMonth(catId);
+    document.getElementById('fs-picker').style.display = 'none';
+    document.getElementById('fs-body').style.display = 'none';
+    document.getElementById('fs-case-picker').style.display = 'block';
+    document.getElementById('fs-case-picker-tag').textContent = TAG_LABELS[catId];
+    document.getElementById('fs-case-month-badge').textContent = '📅 Casos activos de ' + monthLabel;
+    document.getElementById('fs-topbar-tag').textContent = 'Ring de negociación';
+    document.getElementById('fs-topbar-sub').textContent = TAG_LABELS[catId];
+
+    const grid = document.getElementById('fs-case-grid');
+    grid.innerHTML = cases.map((c, i) => `
+      <div class="cat-card" data-case-idx="${i}">
+        <div class="cat-tag" style="background:${CAT_COLORS[catId] || '#FF5A1F'};">Caso ${i + 1}</div>
+        <div class="cat-name">${escapeHtml(c.persona.name)}</div>
+        <div class="cat-desc">${escapeHtml(c.persona.desc)}</div>
+      </div>
+    `).join('');
+    grid.querySelectorAll('.cat-card').forEach((card, i) => {
+      card.addEventListener('click', () => activateScenario(cases[i], catId, { monthLabel, isRehearsal: false }));
+    });
+  }
+
+  const CAT_COLORS = { venta: '#FF5A1F', retencion: '#E0473B', recupero: '#1E9E5D', upselling: '#3B5FE0' };
+
+  function activateScenario(caseObj, catId, opts) {
+    opts = opts || {};
+    currentScenario = Object.assign({}, caseObj, {
+      rubric: RUBRICS[catId],
+      tag: TAG_LABELS[catId],
+      systemPrompt: buildSystemPrompt(caseObj),
+      isRehearsal: !!opts.isRehearsal,
+    });
+    messages = [];
+    ended = false;
+
+    document.getElementById('fs-picker').style.display = 'none';
+    document.getElementById('fs-case-picker').style.display = 'none';
+    document.getElementById('fs-body').style.display = 'flex';
+    document.getElementById('fs-topbar-tag').textContent = 'Ring de negociación';
+    document.getElementById('fs-topbar-sub').textContent = currentScenario.tag;
+    document.getElementById('fs-month-badge').style.display = opts.isRehearsal ? 'none' : 'inline-flex';
+    document.getElementById('fs-rehearsal-badge').style.display = opts.isRehearsal ? 'inline-flex' : 'none';
+    if (opts.monthLabel) document.getElementById('fs-month-badge').textContent = '📅 Caso de ' + opts.monthLabel;
+    document.getElementById('fs-persona-avatar').textContent = currentScenario.persona.avatar;
+    document.getElementById('fs-persona-name').textContent = currentScenario.persona.name;
+    document.getElementById('fs-persona-desc').textContent = currentScenario.persona.desc;
+    document.getElementById('fs-tension-left').textContent = currentScenario.tensionLabels.left;
+    document.getElementById('fs-tension-right').textContent = currentScenario.tensionLabels.right;
+    document.getElementById('fs-tension-note').textContent = currentScenario.tensionLabels.note || 'probabilidad de avanzar';
+    document.getElementById('fs-scorecard').innerHTML = '';
+    endBtn.disabled = false;
+    endBtn.textContent = 'Cerrar simulación y ver evaluación';
+    chatEl.innerHTML = '';
+    renderQuickReplies(catId);
+
+    addMsg('system', opts.isRehearsal
+      ? 'Repaso personal iniciado — practicá como vas a encarar la llamada real.'
+      : 'Simulación iniciada — respondé como lo harías con un cliente real.');
+    addMsg('buyer', currentScenario.opening);
+    messages.push({ role: 'assistant', content: currentScenario.opening });
+    setTension(currentScenario.openingProb);
+  }
+
+  document.querySelectorAll('#fudo-sim .cat-card[data-cat]').forEach(card => {
+    card.addEventListener('click', () => showCasePicker(card.getAttribute('data-cat')));
+  });
+
+  document.getElementById('fs-case-back').addEventListener('click', () => {
+    document.getElementById('fs-case-picker').style.display = 'none';
+    document.getElementById('fs-picker').style.display = 'block';
+    document.getElementById('fs-topbar-tag').textContent = 'Ring de negociación';
+    document.getElementById('fs-topbar-sub').textContent = 'Elegí una categoría para empezar';
+  });
+
+  document.getElementById('fs-switch').addEventListener('click', () => {
+    document.getElementById('fs-body').style.display = 'none';
+    if (currentScenario && currentScenario.isRehearsal) {
+      document.getElementById('fs-picker').style.display = 'block';
+      document.getElementById('fs-topbar-sub').textContent = 'Elegí una categoría para empezar';
+    } else if (currentCatId) {
+      showCasePicker(currentCatId);
+    } else {
+      document.getElementById('fs-picker').style.display = 'block';
+      document.getElementById('fs-topbar-sub').textContent = 'Elegí una categoría para empezar';
+    }
+    document.getElementById('fs-topbar-tag').textContent = 'Ring de negociación';
+    currentScenario = null;
+  });
+
+  // Reiniciar progreso: requiere confirmar con un segundo click.
+  const resetBtn = document.getElementById('fs-reset');
+  let resetArmed = false;
+  let resetTimer = null;
+  resetBtn.addEventListener('click', async () => {
+    if (!resetArmed) {
+      resetArmed = true;
+      resetBtn.textContent = '¿Seguro? Tocá de nuevo';
+      resetBtn.style.borderColor = 'var(--coral)';
+      resetBtn.style.color = 'var(--coral)';
+      resetTimer = setTimeout(() => {
+        resetArmed = false;
+        resetBtn.textContent = '↺ Reiniciar mi progreso';
+        resetBtn.style.borderColor = '';
+        resetBtn.style.color = '';
+      }, 3000);
+      return;
+    }
+    clearTimeout(resetTimer);
+    resetArmed = false;
+    state = { points: 0, missionDone: 0, streak: 1 };
+    await saveProgress();
+    try {
+      const mk = monthKey();
+      await sb('monthly_scores?on_conflict=rep_id,month_key', {
+        method: 'POST', headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+        body: JSON.stringify({ rep_id: repId, month_key: mk, points: 0 }),
+      });
+    } catch (e) {}
+    renderStats();
+    loadLeaderboard();
+    resetBtn.textContent = 'Progreso reiniciado ✓';
+    resetBtn.style.borderColor = '#1E9E5D';
+    resetBtn.style.color = '#1E9E5D';
+    setTimeout(() => {
+      resetBtn.textContent = '↺ Reiniciar mi progreso';
+      resetBtn.style.borderColor = '';
+      resetBtn.style.color = '';
+    }, 1800);
+  });
+
+  // ---------- Repaso personal: generar un caso a partir de una transcripción real pegada ----------
+  const prepStatusEl = document.getElementById('fs-prep-status');
+  document.getElementById('fs-prep-generate').addEventListener('click', async () => {
+    const transcript = document.getElementById('fs-prep-transcript').value.trim();
+    const anon = document.getElementById('fs-prep-anon').checked;
+    const catId = document.getElementById('fs-prep-cat').value;
+    if (!transcript) {
+      prepStatusEl.textContent = 'Pegá primero la transcripción de la conversación real.';
+      prepStatusEl.style.color = 'var(--coral)';
+      return;
+    }
+    const btn = document.getElementById('fs-prep-generate');
+    btn.disabled = true;
+    prepStatusEl.style.color = 'var(--bone-dim)';
+    prepStatusEl.textContent = 'Generando caso de repaso a partir de la transcripción…';
+
+    const genPrompt = `Convertí esta transcripción real de una conversación de soporte/ventas de FUDO (sistema de punto de venta para gastronomía) en un caso de rol-play de negociación para que un ejecutivo practique antes de una llamada real.
+${anon ? 'Anonimizá los nombres de personas y del negocio (inventá nombres ficticios) pero conservá el rubro, la situación, los montos y las objeciones reales.' : 'Podés mantener los nombres tal como aparecen, es para preparación personal antes de una llamada real con ese mismo cliente.'}
+Categoría de la negociación: ${catId}.
+Transcripción:
+${transcript}
+
+Devolvé SOLO un objeto JSON (sin markdown, sin texto adicional) con esta forma exacta:
+{"persona":{"avatar":"1-2 letras","name":"Nombre — negocio (ciudad)","desc":"1 frase de contexto de la situación"},"tensionLabels":{"left":"extremo negativo del resultado","right":"extremo positivo del resultado"},"opening":"mensaje de apertura del cliente en su tono real, 1-3 oraciones","openingProb":0-100,"system":"instrucciones de comportamiento del personaje para el simulador (en español): quién es, cuál es su objeción real, qué lo convence y qué no, basado fielmente en la transcripción"}`;
+
+    try {
+      const raw = await callClaude('Sos un diseñador de simulaciones de negociación comercial. Basás cada caso fielmente en la transcripción real que te pasan.', [{ role: 'user', content: genPrompt }], 700);
+      const caseObj = parseJsonSafe(raw);
+      prepStatusEl.style.color = '#1E9E5D';
+      prepStatusEl.textContent = '¡Listo! Iniciando tu repaso...';
+      setTimeout(() => activateScenario(caseObj, catId, { isRehearsal: true }), 400);
+    } catch (e) {
+      prepStatusEl.style.color = 'var(--coral)';
+      prepStatusEl.textContent = 'No se pudo generar el caso. Probá de nuevo o revisá la transcripción pegada.';
+    }
+    btn.disabled = false;
+  });
+
+  // ---------- Admin: cola compartida de conversaciones de Intercom para sumar al banco ----------
+  let caseQueue = [];
+
+  async function loadQueue() {
+    try {
+      caseQueue = await sb('case_queue?select=*&order=created_at.desc&limit=50') || [];
+    } catch (e) { caseQueue = []; }
+    renderQueue();
+  }
+  function renderQueue() {
+    const el = document.getElementById('fs-admin-queue');
+    if (!caseQueue.length) {
+      el.innerHTML = '<div style="font-size:11.5px; color: var(--bone-dim);">No hay casos en la cola todavía.</div>';
+      return;
+    }
+    el.innerHTML = caseQueue.map(q => `
+      <div class="queue-item">
+        <span>${escapeHtml(q.category)} · ${escapeHtml(q.url)}</span>
+        <span class="queue-status ${q.status}">${q.status}</span>
+      </div>
+    `).join('');
+  }
+  document.getElementById('fs-admin-add').addEventListener('click', async () => {
+    const url = document.getElementById('fs-admin-url').value.trim();
+    const category = document.getElementById('fs-admin-cat').value;
+    const notes = document.getElementById('fs-admin-notes').value.trim();
+    if (!url) return;
+    try {
+      await sb('case_queue', {
+        method: 'POST', headers: { 'Prefer': 'return=minimal' },
+        body: JSON.stringify({ url, category, notes, status: 'pendiente', added_by: repName }),
+      });
+    } catch (e) { console.error('No se pudo agregar el caso a la cola', e); }
+    await loadQueue();
+    document.getElementById('fs-admin-url').value = '';
+    document.getElementById('fs-admin-notes').value = '';
+  });
+  loadQueue();
+
+  sendBtn.addEventListener('click', sendMessage);
+  inputEl.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+  });
+  endBtn.addEventListener('click', endSimulation);
+
+  loadProgress();
+})();
+</script>
