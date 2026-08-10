@@ -1063,7 +1063,7 @@ Devolvé SIEMPRE un JSON (nada de markdown, nada de texto fuera del JSON) con es
         addMsg('coach', parsed.coach_tip);
       }
     } catch (e) {
-      addMsg('system', 'No se pudo conectar con el simulador. Intentá de nuevo.');
+      addMsg('system', 'No se pudo conectar con el simulador: ' + (e && e.message ? e.message : 'error desconocido'));
     }
     loadingEl.style.display = 'none';
     sendBtn.disabled = false;
@@ -1094,7 +1094,7 @@ Elegí entre 2 y 3 momentos como máximo: los turnos del ejecutivo con mayor imp
       const scores = parseJsonSafe(raw);
       renderScorecard(scores, rubric);
     } catch (e) {
-      document.getElementById('fs-scorecard').innerHTML = '<div class="scorecard"><div class="feedback-text">No se pudo generar la evaluación. Probá cerrar la simulación de nuevo.</div></div>';
+      document.getElementById('fs-scorecard').innerHTML = '<div class="scorecard"><div class="feedback-text">No se pudo generar la evaluación: ' + escapeHtml(e && e.message ? e.message : 'error desconocido') + '</div></div>';
       ended = false;
       endBtn.disabled = false;
       endBtn.textContent = 'Cerrar simulación y ver evaluación';
