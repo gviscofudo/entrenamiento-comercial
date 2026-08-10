@@ -276,6 +276,16 @@
   #fudo-sim .role-badge.outbound { background:#FFF7ED; color:#C2410C; }
   #fudo-sim .role-badge.admin { background:#1A1464; color:#fff; }
   @keyframes fs-spin { to { transform: rotate(360deg); } }
+
+  /* ---- Pestañas de la pantalla principal ---- */
+  #fudo-sim .tab-bar { display: flex; gap: 6px; margin-bottom: 18px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+  #fudo-sim .tab-btn {
+    background: none; border: none; padding: 9px 16px; font-size: 13px; font-weight: 700;
+    color: var(--bone-dim); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px;
+    font-family: inherit;
+  }
+  #fudo-sim .tab-btn:hover { color: var(--bone); }
+  #fudo-sim .tab-btn.active { color: var(--gold); border-bottom-color: var(--gold); }
 </style>
 
 <div id="fudo-sim">
@@ -341,115 +351,131 @@
   <div class="picker" id="fs-picker">
     <div class="picker-title">Ring de negociación FUDO</div>
     <div class="picker-sub">¿Qué querés practicar hoy?</div>
-    <div class="cat-desc" style="margin-bottom:16px;">Cada categoría tiene un banco de casos reales (anonimizados). Elegís la categoría y después cuál de los 4 casos activos de este mes querés practicar. Una vez por mes el banco de casos activos rota.</div>
 
-    <details class="refpanel" open style="margin-bottom:16px;">
-      <summary>🏆 Liga de tu equipo (<span id="fs-team-role-label">CS</span>)</summary>
-      <div class="refbody">
-        <div id="fs-team-ranking">
-          <div style="font-size:12px; color:var(--bone-dim);">Cargando ranking del equipo…</div>
+    <div class="tab-bar">
+      <button type="button" class="tab-btn active" data-tab="practicar">🎯 Practicar</button>
+      <button type="button" class="tab-btn" data-tab="ranking">🏆 Ranking</button>
+      <button type="button" class="tab-btn" data-tab="tools">🧰 Herramientas</button>
+      <button type="button" class="tab-btn" data-tab="admin" id="fs-admin-tab-btn" style="display:none;">⚙️ Admin</button>
+    </div>
+
+    <!-- TAB: Practicar -->
+    <div class="tab-content" data-tab-content="practicar">
+      <div class="cat-desc" style="margin-bottom:16px;">Cada categoría tiene un banco de casos reales (anonimizados). Elegís la categoría y después cuál de los 4 casos activos de este mes querés practicar. Una vez por mes el banco de casos activos rota.</div>
+      <div class="cat-grid">
+        <div class="cat-card vt" data-cat="venta">
+          <div class="cat-tag">Venta</div>
+          <div class="cat-name">Objeción de precio</div>
+          <div class="cat-desc">Un prospecto compara FUDO con un competidor más barato y duda antes de firmar.</div>
         </div>
-      </div>
-    </details>
-    <div class="cat-grid">
-      <div class="cat-card vt" data-cat="venta">
-        <div class="cat-tag">Venta</div>
-        <div class="cat-name">Objeción de precio</div>
-        <div class="cat-desc">Un prospecto compara FUDO con un competidor más barato y duda antes de firmar.</div>
-      </div>
-      <div class="cat-card rt" data-cat="retencion">
-        <div class="cat-tag">Retención</div>
-        <div class="cat-name">Pedido de baja</div>
-        <div class="cat-desc">Un cliente activo pide cancelar o pausar el servicio, con distintos grados de frustración.</div>
-      </div>
-      <div class="cat-card rc" data-cat="recupero">
-        <div class="cat-tag">Recupero</div>
-        <div class="cat-name">Cuenta inactiva</div>
-        <div class="cat-desc">Reactivación de una cuenta bloqueada o pausada.</div>
-      </div>
-      <div class="cat-card up" data-cat="upselling">
-        <div class="cat-tag">Up-selling</div>
-        <div class="cat-name">Expansión de cuenta</div>
-        <div class="cat-desc">Un cliente conforme crece (nueva sucursal, más terminales) y hay que ofrecerle el paso siguiente.</div>
+        <div class="cat-card rt" data-cat="retencion">
+          <div class="cat-tag">Retención</div>
+          <div class="cat-name">Pedido de baja</div>
+          <div class="cat-desc">Un cliente activo pide cancelar o pausar el servicio, con distintos grados de frustración.</div>
+        </div>
+        <div class="cat-card rc" data-cat="recupero">
+          <div class="cat-tag">Recupero</div>
+          <div class="cat-name">Cuenta inactiva</div>
+          <div class="cat-desc">Reactivación de una cuenta bloqueada o pausada.</div>
+        </div>
+        <div class="cat-card up" data-cat="upselling">
+          <div class="cat-tag">Up-selling</div>
+          <div class="cat-name">Expansión de cuenta</div>
+          <div class="cat-desc">Un cliente conforme crece (nueva sucursal, más terminales) y hay que ofrecerle el paso siguiente.</div>
+        </div>
       </div>
     </div>
 
-    <details class="refpanel admin-panel rehearsal">
-      <summary>🎯 Preparar mi próxima llamada real (pegar transcripción de Intercom)</summary>
-      <div class="refbody">
-        <p style="margin-top:0;">Pegá acá la conversación real (copiada de Intercom) del cliente con el que vas a hablar. Se genera un caso de repaso personal para practicar antes de la llamada — no se suma al banco compartido, solo queda en tu sesión.</p>
-        <textarea id="fs-prep-transcript" placeholder="Pegá la transcripción real acá..."></textarea>
-        <label><input type="checkbox" id="fs-prep-anon" checked> Anonimizar nombres del cliente/negocio antes de simular</label>
-        <select id="fs-prep-cat">
-          <option value="venta">Venta</option>
-          <option value="retencion">Retención</option>
-          <option value="recupero">Recupero</option>
-          <option value="upselling">Up-selling</option>
-        </select>
-        <button class="admin-btn" id="fs-prep-generate">Generar caso de repaso</button>
-        <div id="fs-prep-status" style="margin-top:8px; font-size:11.5px; color: var(--bone-dim);"></div>
+    <!-- TAB: Ranking -->
+    <div class="tab-content" data-tab-content="ranking" style="display:none;">
+      <div class="picker-sub" style="font-size:16px; margin-bottom:10px;">🏆 Liga de tu equipo (<span id="fs-team-role-label">CS</span>)</div>
+      <div id="fs-team-ranking">
+        <div style="font-size:12px; color:var(--bone-dim);">Cargando ranking del equipo…</div>
       </div>
-    </details>
+    </div>
 
-    <details class="refpanel admin-panel rehearsal">
-      <summary>🧑‍💼 Modo entrevista (candidatos que no son ejecutivos activos)</summary>
-      <div class="refbody">
-        <p style="margin-top:0;">Para usar en procesos de selección. El resultado no suma a la liga del equipo ni al progreso de nadie — queda registrado aparte, para que el entrevistador lo revise.</p>
-        <input type="text" id="fs-interview-candidate" placeholder="Nombre del candidato/a">
-        <input type="text" id="fs-interview-interviewer" placeholder="Tu nombre (entrevistador/a)">
-        <select id="fs-interview-cat">
-          <option value="venta">Venta</option>
-          <option value="retencion">Retención</option>
-          <option value="recupero">Recupero</option>
-          <option value="upselling">Up-selling</option>
-        </select>
-        <button class="admin-btn" id="fs-interview-start">Empezar entrevista</button>
-        <div id="fs-interview-status" style="margin-top:8px; font-size:11.5px; color: var(--bone-dim);"></div>
-      </div>
-    </details>
+    <!-- TAB: Herramientas (repaso personal, entrevistas, desafíos) -->
+    <div class="tab-content" data-tab-content="tools" style="display:none;">
+      <details class="refpanel admin-panel rehearsal" open>
+        <summary>🎯 Preparar mi próxima llamada real (pegar transcripción de Intercom)</summary>
+        <div class="refbody">
+          <p style="margin-top:0;">Pegá acá la conversación real (copiada de Intercom) del cliente con el que vas a hablar. Se genera un caso de repaso personal para practicar antes de la llamada — no se suma al banco compartido, solo queda en tu sesión.</p>
+          <textarea id="fs-prep-transcript" placeholder="Pegá la transcripción real acá..."></textarea>
+          <label><input type="checkbox" id="fs-prep-anon" checked> Anonimizar nombres del cliente/negocio antes de simular</label>
+          <select id="fs-prep-cat">
+            <option value="venta">Venta</option>
+            <option value="retencion">Retención</option>
+            <option value="recupero">Recupero</option>
+            <option value="upselling">Up-selling</option>
+          </select>
+          <button class="admin-btn" id="fs-prep-generate">Generar caso de repaso</button>
+          <div id="fs-prep-status" style="margin-top:8px; font-size:11.5px; color: var(--bone-dim);"></div>
+        </div>
+      </details>
 
-    <details class="refpanel admin-panel rehearsal">
-      <summary>🥊 Desafiar a un compañero</summary>
-      <div class="refbody">
-        <p style="margin-top:0;">Elegí una categoría y un caso, y quedará disponible para que cualquiera del equipo lo acepte y compare su resultado con el tuyo.</p>
-        <input type="text" id="fs-challenge-title" placeholder="Título del desafío (ej: 'Objeción de precio - ronda 1')">
-        <select id="fs-challenge-cat">
-          <option value="venta">Venta</option>
-          <option value="retencion">Retención</option>
-          <option value="recupero">Recupero</option>
-          <option value="upselling">Up-selling</option>
-        </select>
-        <button class="admin-btn" id="fs-challenge-create">Crear desafío</button>
-        <div id="fs-challenge-status" style="margin-top:8px; font-size:11.5px; color: var(--bone-dim);"></div>
-        <div id="fs-challenge-list" style="margin-top:12px;"></div>
-      </div>
-    </details>
+      <details class="refpanel admin-panel rehearsal">
+        <summary>🧑‍💼 Modo entrevista (candidatos que no son ejecutivos activos)</summary>
+        <div class="refbody">
+          <p style="margin-top:0;">Para usar en procesos de selección. El resultado no suma a la liga del equipo ni al progreso de nadie — queda registrado aparte, para que el entrevistador lo revise.</p>
+          <input type="text" id="fs-interview-candidate" placeholder="Nombre del candidato/a">
+          <input type="text" id="fs-interview-interviewer" placeholder="Tu nombre (entrevistador/a)">
+          <select id="fs-interview-cat">
+            <option value="venta">Venta</option>
+            <option value="retencion">Retención</option>
+            <option value="recupero">Recupero</option>
+            <option value="upselling">Up-selling</option>
+          </select>
+          <button class="admin-btn" id="fs-interview-start">Empezar entrevista</button>
+          <div id="fs-interview-status" style="margin-top:8px; font-size:11.5px; color: var(--bone-dim);"></div>
+        </div>
+      </details>
 
-    <details class="refpanel admin-panel">
-      <summary>⚙️ Admin — configuración y banco de casos</summary>
-      <div class="refbody">
-        <p style="margin-top:0;"><b>Instructor en vivo</b></p>
-        <label><input type="checkbox" id="fs-instructor-toggle" checked> Mostrar burbuja de instructor durante la conversación (para todo el equipo)</label>
+      <details class="refpanel admin-panel rehearsal">
+        <summary>🥊 Desafiar a un compañero</summary>
+        <div class="refbody">
+          <p style="margin-top:0;">Elegí una categoría y un caso, y quedará disponible para que cualquiera del equipo lo acepte y compare su resultado con el tuyo.</p>
+          <input type="text" id="fs-challenge-title" placeholder="Título del desafío (ej: 'Objeción de precio - ronda 1')">
+          <select id="fs-challenge-cat">
+            <option value="venta">Venta</option>
+            <option value="retencion">Retención</option>
+            <option value="recupero">Recupero</option>
+            <option value="upselling">Up-selling</option>
+          </select>
+          <button class="admin-btn" id="fs-challenge-create">Crear desafío</button>
+          <div id="fs-challenge-status" style="margin-top:8px; font-size:11.5px; color: var(--bone-dim);"></div>
+          <div id="fs-challenge-list" style="margin-top:12px;"></div>
+        </div>
+      </details>
+    </div>
 
-        <p style="margin-top:16px;"><b>Rotación de casos</b></p>
-        <p style="font-size:11.5px; color:var(--bone-dim);">Avanza a la siguiente tanda de 4 casos activos en cada categoría (solo tiene efecto en categorías con más de 4 casos cargados).</p>
-        <button class="admin-btn" id="fs-rotate-cases">🔄 Actualizar casos del mes (todas las categorías)</button>
-        <div id="fs-rotate-status" style="margin-top:8px; font-size:11.5px; color: var(--bone-dim);"></div>
+    <!-- TAB: Admin (solo rol admin) -->
+    <div class="tab-content" data-tab-content="admin" style="display:none;">
+      <details class="refpanel admin-panel" open>
+        <summary>⚙️ Configuración y banco de casos</summary>
+        <div class="refbody">
+          <p style="margin-top:0;"><b>Instructor en vivo</b></p>
+          <label><input type="checkbox" id="fs-instructor-toggle" checked> Mostrar burbuja de instructor durante la conversación (para todo el equipo)</label>
 
-        <p style="margin-top:16px;"><b>Sumar casos al banco (desde Intercom)</b></p>
-        <p style="margin-top:0;">Este archivo no tiene ni puede tener credenciales de Intercom (por seguridad, quedarían expuestas a cualquiera que lo abra). Cargá acá el ID o URL de la conversación real y va a una cola compartida. Para que se sumen de verdad al banco del equipo (tabla <code>cases</code> en Supabase), escribile a Claude en el chat: <i>"procesá la cola de casos de Intercom"</i> — Claude las trae desde Intercom, las anonimiza y las agrega directo a la base.</p>
-        <input type="text" id="fs-admin-url" placeholder="ID o URL de la conversación de Intercom">
-        <select id="fs-admin-cat">
-          <option value="venta">Venta</option>
-          <option value="retencion">Retención</option>
-          <option value="recupero">Recupero</option>
-          <option value="upselling">Up-selling</option>
-        </select>
-        <textarea id="fs-admin-notes" placeholder="Notas opcionales: por qué este caso es útil para entrenar"></textarea>
-        <button class="admin-btn blue" id="fs-admin-add">+ Agregar a la cola</button>
-        <div id="fs-admin-queue" style="margin-top:10px;"></div>
-      </div>
-    </details>
+          <p style="margin-top:16px;"><b>Rotación de casos</b></p>
+          <p style="font-size:11.5px; color:var(--bone-dim);">Avanza a la siguiente tanda de 4 casos activos en cada categoría (solo tiene efecto en categorías con más de 4 casos cargados).</p>
+          <button class="admin-btn" id="fs-rotate-cases">🔄 Actualizar casos del mes (todas las categorías)</button>
+          <div id="fs-rotate-status" style="margin-top:8px; font-size:11.5px; color: var(--bone-dim);"></div>
+
+          <p style="margin-top:16px;"><b>Sumar casos al banco (desde Intercom)</b></p>
+          <p style="margin-top:0;">Este archivo no tiene ni puede tener credenciales de Intercom (por seguridad, quedarían expuestas a cualquiera que lo abra). Cargá acá el ID o URL de la conversación real y va a una cola compartida. Para que se sumen de verdad al banco del equipo (tabla <code>cases</code> en Supabase), escribile a Claude en el chat: <i>"procesá la cola de casos de Intercom"</i> — Claude las trae desde Intercom, las anonimiza y las agrega directo a la base.</p>
+          <input type="text" id="fs-admin-url" placeholder="ID o URL de la conversación de Intercom">
+          <select id="fs-admin-cat">
+            <option value="venta">Venta</option>
+            <option value="retencion">Retención</option>
+            <option value="recupero">Recupero</option>
+            <option value="upselling">Up-selling</option>
+          </select>
+          <textarea id="fs-admin-notes" placeholder="Notas opcionales: por qué este caso es útil para entrenar"></textarea>
+          <button class="admin-btn blue" id="fs-admin-add">+ Agregar a la cola</button>
+          <div id="fs-admin-queue" style="margin-top:10px;"></div>
+        </div>
+      </details>
+    </div>
   </div>
 
   <!-- CASE PICKER (4 casos activos del mes dentro de una categoría) -->
@@ -609,10 +635,9 @@
     rb.textContent = labels[currentRole] || currentRole.toUpperCase();
     rb.className = 'role-badge ' + currentRole;
 
-    // El panel de admin (cola de casos de Intercom) queda solo para el rol admin, igual que en el Hub.
-    document.querySelectorAll('#fudo-sim .admin-panel:not(.rehearsal)').forEach(el => {
-      el.style.display = currentRole === 'admin' ? '' : 'none';
-    });
+    // La pestaña de Admin (config + banco de casos) queda solo para el rol admin, igual que en el Hub.
+    const adminTabBtn = document.getElementById('fs-admin-tab-btn');
+    if (adminTabBtn) adminTabBtn.style.display = currentRole === 'admin' ? '' : 'none';
 
     await mirrorRepToDataProject();
     await bootApp();
@@ -1336,6 +1361,19 @@ Elegí entre 2 y 3 momentos como máximo: los turnos del ejecutivo con mayor imp
 
   document.querySelectorAll('#fudo-sim .cat-card[data-cat]').forEach(card => {
     card.addEventListener('click', () => showCasePicker(card.getAttribute('data-cat')));
+  });
+
+  // ---------- Pestañas de la pantalla principal ----------
+  document.querySelectorAll('#fudo-sim .tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tab = btn.getAttribute('data-tab');
+      document.querySelectorAll('#fudo-sim .tab-btn').forEach(b => b.classList.toggle('active', b === btn));
+      document.querySelectorAll('#fudo-sim .tab-content').forEach(c => {
+        c.style.display = c.getAttribute('data-tab-content') === tab ? 'block' : 'none';
+      });
+      if (tab === 'ranking') renderTeamRanking();
+      if (tab === 'tools') loadChallenges();
+    });
   });
 
   document.getElementById('fs-case-back').addEventListener('click', () => {
