@@ -193,12 +193,13 @@
   #fudo-sim .admin-panel { margin-top: 16px; }
   #fudo-sim .admin-panel summary { color: #3B5FE0; }
   #fudo-sim .admin-panel.rehearsal summary { color: var(--gold); }
-  #fudo-sim .refbody label { display:flex; align-items:center; gap:6px; font-size:11.5px; margin: 8px 0; cursor:pointer; }
-  #fudo-sim .refbody input[type="text"], #fudo-sim .refbody textarea, #fudo-sim .refbody select {
+  #fudo-sim .refbody label, #fudo-sim .tab-content label { display:flex; align-items:center; gap:6px; font-size:11.5px; margin: 8px 0; cursor:pointer; }
+  #fudo-sim .refbody input[type="text"], #fudo-sim .refbody textarea, #fudo-sim .refbody select,
+  #fudo-sim .tab-content input[type="text"], #fudo-sim .tab-content input[type="email"], #fudo-sim .tab-content textarea, #fudo-sim .tab-content select {
     width: 100%; background: var(--bg); border: 1px solid var(--line); border-radius: 8px;
     color: var(--bone); padding: 8px 10px; font-size: 12.5px; font-family: inherit; margin-bottom: 8px;
   }
-  #fudo-sim .refbody textarea { min-height: 80px; resize: vertical; }
+  #fudo-sim .refbody textarea, #fudo-sim .tab-content textarea { min-height: 80px; resize: vertical; }
   #fudo-sim .admin-btn {
     background: var(--gold); color: #1a1a1a; border:none; border-radius: 8px; padding: 7px 14px;
     font-weight:700; cursor:pointer; font-size:12px;
@@ -286,6 +287,19 @@
   }
   #fudo-sim .tab-btn:hover { color: var(--bone); }
   #fudo-sim .tab-btn.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+  #fudo-sim .hamburger-wrap { position: relative; margin-left: auto; }
+  #fudo-sim .hamburger-btn { font-size: 15px; }
+  #fudo-sim .hamburger-menu {
+    position: absolute; right: 0; top: calc(100% + 4px); background: #fff; border: 1px solid var(--line);
+    border-radius: 10px; box-shadow: 0 8px 24px rgba(36,26,18,0.14); min-width: 220px; z-index: 20;
+    padding: 6px; display: flex; flex-direction: column; gap: 2px;
+  }
+  #fudo-sim .hmenu-item {
+    background: none; border: none; text-align: left; padding: 9px 10px; font-size: 13px;
+    color: var(--bone); cursor: pointer; border-radius: 6px; font-family: inherit;
+  }
+  #fudo-sim .hmenu-item:hover { background: var(--bg-panel-2); }
 </style>
 
 <div id="fudo-sim">
@@ -355,8 +369,15 @@
     <div class="tab-bar">
       <button type="button" class="tab-btn active" data-tab="practicar">🎯 Practicar</button>
       <button type="button" class="tab-btn" data-tab="ranking">🏆 Ranking</button>
-      <button type="button" class="tab-btn" data-tab="tools">🧰 Herramientas</button>
-      <button type="button" class="tab-btn" data-tab="admin" id="fs-admin-tab-btn" style="display:none;">⚙️ Admin</button>
+      <div class="hamburger-wrap">
+        <button type="button" class="tab-btn hamburger-btn" id="fs-hamburger-btn">☰ Más</button>
+        <div class="hamburger-menu" id="fs-hamburger-menu" style="display:none;">
+          <button type="button" class="hmenu-item" data-tab="prep">🎯 Preparar mi próxima llamada</button>
+          <button type="button" class="hmenu-item" data-tab="interview">🧑‍💼 Modo entrevista</button>
+          <button type="button" class="hmenu-item" data-tab="challenge">🥊 Desafiar a un compañero</button>
+          <button type="button" class="hmenu-item" data-tab="admin" id="fs-admin-menu-item" style="display:none;">⚙️ Admin</button>
+        </div>
+      </div>
     </div>
 
     <!-- TAB: Practicar -->
@@ -394,87 +415,78 @@
       </div>
     </div>
 
-    <!-- TAB: Herramientas (repaso personal, entrevistas, desafíos) -->
-    <div class="tab-content" data-tab-content="tools" style="display:none;">
-      <details class="refpanel admin-panel rehearsal" open>
-        <summary>🎯 Preparar mi próxima llamada real (pegar transcripción de Intercom)</summary>
-        <div class="refbody">
-          <p style="margin-top:0;">Pegá acá la conversación real (copiada de Intercom) del cliente con el que vas a hablar. Se genera un caso de repaso personal para practicar antes de la llamada — no se suma al banco compartido, solo queda en tu sesión.</p>
-          <textarea id="fs-prep-transcript" placeholder="Pegá la transcripción real acá..."></textarea>
-          <label><input type="checkbox" id="fs-prep-anon" checked> Anonimizar nombres del cliente/negocio antes de simular</label>
-          <select id="fs-prep-cat">
-            <option value="venta">Venta</option>
-            <option value="retencion">Retención</option>
-            <option value="recupero">Recupero</option>
-            <option value="upselling">Up-selling</option>
-          </select>
-          <button class="admin-btn" id="fs-prep-generate">Generar caso de repaso</button>
-          <div id="fs-prep-status" style="margin-top:8px; font-size:11.5px; color: var(--bone-dim);"></div>
-        </div>
-      </details>
-
-      <details class="refpanel admin-panel rehearsal">
-        <summary>🧑‍💼 Modo entrevista (candidatos que no son ejecutivos activos)</summary>
-        <div class="refbody">
-          <p style="margin-top:0;">Para usar en procesos de selección. El resultado no suma a la liga del equipo ni al progreso de nadie — queda registrado aparte, para que el entrevistador lo revise.</p>
-          <input type="text" id="fs-interview-candidate" placeholder="Nombre del candidato/a">
-          <input type="text" id="fs-interview-interviewer" placeholder="Tu nombre (entrevistador/a)">
-          <select id="fs-interview-cat">
-            <option value="venta">Venta</option>
-            <option value="retencion">Retención</option>
-            <option value="recupero">Recupero</option>
-            <option value="upselling">Up-selling</option>
-          </select>
-          <button class="admin-btn" id="fs-interview-start">Empezar entrevista</button>
-          <div id="fs-interview-status" style="margin-top:8px; font-size:11.5px; color: var(--bone-dim);"></div>
-        </div>
-      </details>
-
-      <details class="refpanel admin-panel rehearsal">
-        <summary>🥊 Desafiar a un compañero</summary>
-        <div class="refbody">
-          <p style="margin-top:0;">Elegí una categoría y un caso, y quedará disponible para que cualquiera del equipo lo acepte y compare su resultado con el tuyo.</p>
-          <input type="text" id="fs-challenge-title" placeholder="Título del desafío (ej: 'Objeción de precio - ronda 1')">
-          <select id="fs-challenge-cat">
-            <option value="venta">Venta</option>
-            <option value="retencion">Retención</option>
-            <option value="recupero">Recupero</option>
-            <option value="upselling">Up-selling</option>
-          </select>
-          <button class="admin-btn" id="fs-challenge-create">Crear desafío</button>
-          <div id="fs-challenge-status" style="margin-top:8px; font-size:11.5px; color: var(--bone-dim);"></div>
-          <div id="fs-challenge-list" style="margin-top:12px;"></div>
-        </div>
-      </details>
+    <!-- TAB: Preparar llamada (desde el menú ☰) -->
+    <div class="tab-content" data-tab-content="prep" style="display:none;">
+      <div class="picker-sub" style="font-size:16px; margin-bottom:10px;">🎯 Preparar mi próxima llamada real</div>
+      <p style="margin-top:0; font-size:12.5px; color:var(--bone-dim);">Pegá acá la conversación real (copiada de Intercom) del cliente con el que vas a hablar. Se genera un caso de repaso personal para practicar antes de la llamada — no se suma al banco compartido, solo queda en tu sesión.</p>
+      <textarea id="fs-prep-transcript" placeholder="Pegá la transcripción real acá..."></textarea>
+      <label><input type="checkbox" id="fs-prep-anon" checked> Anonimizar nombres del cliente/negocio antes de simular</label>
+      <select id="fs-prep-cat">
+        <option value="venta">Venta</option>
+        <option value="retencion">Retención</option>
+        <option value="recupero">Recupero</option>
+        <option value="upselling">Up-selling</option>
+      </select>
+      <button class="admin-btn" id="fs-prep-generate">Generar caso de repaso</button>
+      <div id="fs-prep-status" style="margin-top:8px; font-size:11.5px; color: var(--bone-dim);"></div>
     </div>
 
-    <!-- TAB: Admin (solo rol admin) -->
+    <!-- TAB: Modo entrevista (desde el menú ☰) -->
+    <div class="tab-content" data-tab-content="interview" style="display:none;">
+      <div class="picker-sub" style="font-size:16px; margin-bottom:10px;">🧑‍💼 Modo entrevista</div>
+      <p style="margin-top:0; font-size:12.5px; color:var(--bone-dim);">Para usar en procesos de selección, con candidatos que no son ejecutivos activos. El resultado no suma a la liga del equipo ni al progreso de nadie — queda registrado aparte, para que el entrevistador lo revise.</p>
+      <input type="text" id="fs-interview-candidate" placeholder="Nombre del candidato/a">
+      <input type="text" id="fs-interview-interviewer" placeholder="Tu nombre (entrevistador/a)">
+      <select id="fs-interview-cat">
+        <option value="venta">Venta</option>
+        <option value="retencion">Retención</option>
+        <option value="recupero">Recupero</option>
+        <option value="upselling">Up-selling</option>
+      </select>
+      <button class="admin-btn" id="fs-interview-start">Empezar entrevista</button>
+      <div id="fs-interview-status" style="margin-top:8px; font-size:11.5px; color: var(--bone-dim);"></div>
+    </div>
+
+    <!-- TAB: Desafíos (desde el menú ☰) -->
+    <div class="tab-content" data-tab-content="challenge" style="display:none;">
+      <div class="picker-sub" style="font-size:16px; margin-bottom:10px;">🥊 Desafiar a un compañero</div>
+      <p style="margin-top:0; font-size:12.5px; color:var(--bone-dim);">Elegí una categoría, creá el desafío y compartiselo — quien lo acepte compite con el mismo caso y comparás los resultados.</p>
+      <input type="text" id="fs-challenge-title" placeholder="Título del desafío (ej: 'Objeción de precio - ronda 1')">
+      <select id="fs-challenge-cat">
+        <option value="venta">Venta</option>
+        <option value="retencion">Retención</option>
+        <option value="recupero">Recupero</option>
+        <option value="upselling">Up-selling</option>
+      </select>
+      <button class="admin-btn" id="fs-challenge-create">Crear desafío</button>
+      <div id="fs-challenge-status" style="margin-top:8px; font-size:11.5px; color: var(--bone-dim);"></div>
+      <div style="margin-top:16px; font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:var(--bone-dim); font-weight:700;">Desafíos activos</div>
+      <div id="fs-challenge-list" style="margin-top:8px;"></div>
+    </div>
+
+    <!-- TAB: Admin (desde el menú ☰, solo rol admin) -->
     <div class="tab-content" data-tab-content="admin" style="display:none;">
-      <details class="refpanel admin-panel" open>
-        <summary>⚙️ Configuración y banco de casos</summary>
-        <div class="refbody">
-          <p style="margin-top:0;"><b>Instructor en vivo</b></p>
-          <label><input type="checkbox" id="fs-instructor-toggle" checked> Mostrar burbuja de instructor durante la conversación (para todo el equipo)</label>
+      <div class="picker-sub" style="font-size:16px; margin-bottom:10px;">⚙️ Admin — configuración y banco de casos</div>
+      <p style="margin-top:0;"><b>Instructor en vivo</b></p>
+      <label><input type="checkbox" id="fs-instructor-toggle" checked> Mostrar burbuja de instructor durante la conversación (para todo el equipo)</label>
 
-          <p style="margin-top:16px;"><b>Rotación de casos</b></p>
-          <p style="font-size:11.5px; color:var(--bone-dim);">Avanza a la siguiente tanda de 4 casos activos en cada categoría (solo tiene efecto en categorías con más de 4 casos cargados).</p>
-          <button class="admin-btn" id="fs-rotate-cases">🔄 Actualizar casos del mes (todas las categorías)</button>
-          <div id="fs-rotate-status" style="margin-top:8px; font-size:11.5px; color: var(--bone-dim);"></div>
+      <p style="margin-top:16px;"><b>Rotación de casos</b></p>
+      <p style="font-size:11.5px; color:var(--bone-dim);">Avanza a la siguiente tanda de 4 casos activos en cada categoría (solo tiene efecto en categorías con más de 4 casos cargados).</p>
+      <button class="admin-btn" id="fs-rotate-cases">🔄 Actualizar casos del mes (todas las categorías)</button>
+      <div id="fs-rotate-status" style="margin-top:8px; font-size:11.5px; color: var(--bone-dim);"></div>
 
-          <p style="margin-top:16px;"><b>Sumar casos al banco (desde Intercom)</b></p>
-          <p style="margin-top:0;">Este archivo no tiene ni puede tener credenciales de Intercom (por seguridad, quedarían expuestas a cualquiera que lo abra). Cargá acá el ID o URL de la conversación real y va a una cola compartida. Para que se sumen de verdad al banco del equipo (tabla <code>cases</code> en Supabase), escribile a Claude en el chat: <i>"procesá la cola de casos de Intercom"</i> — Claude las trae desde Intercom, las anonimiza y las agrega directo a la base.</p>
-          <input type="text" id="fs-admin-url" placeholder="ID o URL de la conversación de Intercom">
-          <select id="fs-admin-cat">
-            <option value="venta">Venta</option>
-            <option value="retencion">Retención</option>
-            <option value="recupero">Recupero</option>
-            <option value="upselling">Up-selling</option>
-          </select>
-          <textarea id="fs-admin-notes" placeholder="Notas opcionales: por qué este caso es útil para entrenar"></textarea>
-          <button class="admin-btn blue" id="fs-admin-add">+ Agregar a la cola</button>
-          <div id="fs-admin-queue" style="margin-top:10px;"></div>
-        </div>
-      </details>
+      <p style="margin-top:16px;"><b>Sumar casos al banco (desde Intercom)</b></p>
+      <p style="margin-top:0;">Este archivo no tiene ni puede tener credenciales de Intercom (por seguridad, quedarían expuestas a cualquiera que lo abra). Cargá acá el ID o URL de la conversación real y va a una cola compartida. Para que se sumen de verdad al banco del equipo (tabla <code>cases</code> en Supabase), escribile a Claude en el chat: <i>"procesá la cola de casos de Intercom"</i> — Claude las trae desde Intercom, las anonimiza y las agrega directo a la base.</p>
+      <input type="text" id="fs-admin-url" placeholder="ID o URL de la conversación de Intercom">
+      <select id="fs-admin-cat">
+        <option value="venta">Venta</option>
+        <option value="retencion">Retención</option>
+        <option value="recupero">Recupero</option>
+        <option value="upselling">Up-selling</option>
+      </select>
+      <textarea id="fs-admin-notes" placeholder="Notas opcionales: por qué este caso es útil para entrenar"></textarea>
+      <button class="admin-btn blue" id="fs-admin-add">+ Agregar a la cola</button>
+      <div id="fs-admin-queue" style="margin-top:10px;"></div>
     </div>
   </div>
 
@@ -636,8 +648,8 @@
     rb.className = 'role-badge ' + currentRole;
 
     // La pestaña de Admin (config + banco de casos) queda solo para el rol admin, igual que en el Hub.
-    const adminTabBtn = document.getElementById('fs-admin-tab-btn');
-    if (adminTabBtn) adminTabBtn.style.display = currentRole === 'admin' ? '' : 'none';
+    const adminMenuItem = document.getElementById('fs-admin-menu-item');
+    if (adminMenuItem) adminMenuItem.style.display = currentRole === 'admin' ? '' : 'none';
 
     await mirrorRepToDataProject();
     await bootApp();
@@ -1004,21 +1016,50 @@ Devolvé SIEMPRE un JSON (nada de markdown, nada de texto fuera del JSON) con es
         const standings = done.slice().sort((a, b) => (b.points_earned || 0) - (a.points_earned || 0))
           .map((i, idx) => `${idx + 1}. ${escapeHtml(i.invited_name)} — ${i.points_earned || 0} pts`).join('<br>');
         return `<div class="queue-item" style="flex-direction:column; align-items:flex-start;">
-          <div style="display:flex; justify-content:space-between; width:100%; align-items:center;">
+          <div style="display:flex; justify-content:space-between; width:100%; align-items:center; gap:8px;">
             <b style="font-size:12px;">${escapeHtml(r.title || 'Desafío')} <span style="font-weight:400; color:var(--bone-dim);">(${escapeHtml(r.category)})</span></b>
-            ${alreadyDone
-              ? '<span class="queue-status agregado">ya jugaste</span>'
-              : `<button type="button" class="qbtn ladder" data-accept-challenge="${r.id}" data-accept-cat="${escapeHtml(r.category)}">Aceptar</button>`}
+            <div style="display:flex; gap:6px; flex-shrink:0;">
+              <button type="button" class="qbtn" data-share-challenge="${r.id}" data-share-title="${escapeHtml(r.title || '')}" data-share-cat="${escapeHtml(r.category)}">📋 Compartir</button>
+              ${alreadyDone
+                ? '<span class="queue-status agregado">ya jugaste</span>'
+                : `<button type="button" class="qbtn ladder" data-accept-challenge="${r.id}" data-accept-cat="${escapeHtml(r.category)}">Aceptar</button>`}
+            </div>
           </div>
           <span style="font-size:11px; color:var(--bone-dim);">Creado por ${escapeHtml(r.created_by_name || '—')} · ${done.length}/${invites.length} completaron</span>
           ${standings ? '<div style="font-size:11px; margin-top:4px;">' + standings + '</div>' : ''}
         </div>`;
       }).join('');
+      el.querySelectorAll('[data-share-challenge]').forEach(btn => {
+        btn.addEventListener('click', () => shareChallenge(
+          btn.getAttribute('data-share-challenge'), btn, btn.getAttribute('data-share-title'), btn.getAttribute('data-share-cat')
+        ));
+      });
       el.querySelectorAll('[data-accept-challenge]').forEach(btn => {
         btn.addEventListener('click', () => acceptChallenge(btn.getAttribute('data-accept-challenge'), btn.getAttribute('data-accept-cat')));
       });
     } catch (e) {
       el.innerHTML = '<div style="font-size:11.5px; color:var(--bone-dim);">No se pudieron cargar los desafíos.</div>';
+    }
+  }
+
+  async function shareChallenge(challengeId, btnEl, title, category) {
+    const url = window.location.origin + window.location.pathname + '?challenge=' + challengeId;
+    const catLabel = TAG_LABELS[category] || category;
+    const text = `🥊 Te desafío a un Ring de Negociación: "${title || 'Sin título'}" (${catLabel}).\nEntrá y aceptalo acá: ${url}`;
+    const originalText = btnEl.textContent;
+    const flash = (msg) => { btnEl.textContent = msg; setTimeout(() => { btnEl.textContent = originalText; }, 1800); };
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: 'Desafío del Ring de Negociación', text, url });
+        return;
+      } catch (e) { return; } // el usuario canceló el share nativo
+    }
+    try {
+      await navigator.clipboard.writeText(text);
+      flash('✓ Copiado');
+    } catch (e) {
+      window.prompt('Copiá este mensaje para compartir:', text);
     }
   }
 
@@ -1363,17 +1404,38 @@ Elegí entre 2 y 3 momentos como máximo: los turnos del ejecutivo con mayor imp
     card.addEventListener('click', () => showCasePicker(card.getAttribute('data-cat')));
   });
 
-  // ---------- Pestañas de la pantalla principal ----------
-  document.querySelectorAll('#fudo-sim .tab-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const tab = btn.getAttribute('data-tab');
-      document.querySelectorAll('#fudo-sim .tab-btn').forEach(b => b.classList.toggle('active', b === btn));
-      document.querySelectorAll('#fudo-sim .tab-content').forEach(c => {
-        c.style.display = c.getAttribute('data-tab-content') === tab ? 'block' : 'none';
-      });
-      if (tab === 'ranking') renderTeamRanking();
-      if (tab === 'tools') loadChallenges();
+  // ---------- Pestañas de la pantalla principal + menú ☰ ----------
+  function activateTab(tab) {
+    document.querySelectorAll('#fudo-sim .tab-btn:not(.hamburger-btn)').forEach(b => b.classList.toggle('active', b.getAttribute('data-tab') === tab));
+    const isHamburgerTab = ['prep', 'interview', 'challenge', 'admin'].includes(tab);
+    document.getElementById('fs-hamburger-btn').classList.toggle('active', isHamburgerTab);
+    document.querySelectorAll('#fudo-sim .tab-content').forEach(c => {
+      c.style.display = c.getAttribute('data-tab-content') === tab ? 'block' : 'none';
     });
+    if (tab === 'ranking') renderTeamRanking();
+    if (tab === 'challenge') loadChallenges();
+  }
+
+  document.querySelectorAll('#fudo-sim .tab-btn[data-tab]').forEach(btn => {
+    btn.addEventListener('click', () => activateTab(btn.getAttribute('data-tab')));
+  });
+
+  const hamburgerBtn = document.getElementById('fs-hamburger-btn');
+  const hamburgerMenu = document.getElementById('fs-hamburger-menu');
+  hamburgerBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    hamburgerMenu.style.display = hamburgerMenu.style.display === 'none' ? 'flex' : 'none';
+  });
+  document.querySelectorAll('#fudo-sim .hmenu-item').forEach(item => {
+    item.addEventListener('click', () => {
+      activateTab(item.getAttribute('data-tab'));
+      hamburgerMenu.style.display = 'none';
+    });
+  });
+  document.addEventListener('click', (e) => {
+    if (hamburgerMenu.style.display !== 'none' && !hamburgerMenu.contains(e.target) && e.target !== hamburgerBtn) {
+      hamburgerMenu.style.display = 'none';
+    }
   });
 
   document.getElementById('fs-case-back').addEventListener('click', () => {
@@ -1528,6 +1590,20 @@ Devolvé SOLO un objeto JSON (sin markdown, sin texto adicional) con esta forma 
     await loadQueue();
     await loadInstructorSetting();
     await loadChallenges();
+
+    // Si entró desde un link compartido de un desafío (?challenge=ID), lo llevamos directo ahí.
+    const sharedChallengeId = new URLSearchParams(window.location.search).get('challenge');
+    if (sharedChallengeId) {
+      activateTab('challenge');
+      // pequeño resaltado visual del desafío compartido, si sigue en la lista
+      setTimeout(() => {
+        const card = document.querySelector(`[data-accept-challenge="${sharedChallengeId}"], [data-share-challenge="${sharedChallengeId}"]`);
+        if (card && card.closest('.queue-item')) {
+          card.closest('.queue-item').style.borderColor = 'var(--gold)';
+          card.closest('.queue-item').style.borderWidth = '2px';
+        }
+      }, 300);
+    }
   }
 
   // ---------- Toggle del instructor en vivo (config global, la controla un admin) ----------
