@@ -489,6 +489,9 @@
   // ---------- Conexión a Supabase (proyecto "Entrenamiento Comercial") ----------
   const SUPABASE_URL = 'https://nsgvyjbagqrapcofqfkl.supabase.co';
   const SUPABASE_KEY = 'sb_publishable_m-9--qlYZEjEtg6_e36Dkg_15GBRokF';
+  // JWT legacy "anon" (distinto de la publishable key de arriba): las Edge Functions con
+  // verify_jwt requieren un JWT válido en el header Authorization, no el formato sb_publishable_.
+  const SUPABASE_ANON_JWT = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5zZ3Z5amJhZ3FyYXBjb2ZxZmtsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYzNTY1NDQsImV4cCI6MjEwMTkzMjU0NH0.shj50dfBtHXCT4pcLYeqireh17bcjoFafxyC-TKfg5Y';
 
   async function sb(path, options) {
     options = options || {};
@@ -1013,9 +1016,15 @@ Devolvé SIEMPRE un JSON (nada de markdown, nada de texto fuera del JSON) con es
   }
 
   async function callClaude(systemPrompt, msgs, maxTokens) {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    // Pasa por la Edge Function "claude-proxy" del proyecto de Supabase: la API key de
+    // Anthropic vive como secret del lado del servidor, nunca en este archivo.
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/claude-proxy`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + SUPABASE_ANON_JWT,
+        'apikey': SUPABASE_ANON_JWT,
+      },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
         max_tokens: maxTokens || 1000,
@@ -1024,6 +1033,9 @@ Devolvé SIEMPRE un JSON (nada de markdown, nada de texto fuera del JSON) con es
       }),
     });
     const data = await res.json();
+    if (!res.ok) {
+      throw new Error((data && data.error) ? data.error : 'Error llamando a la función de Claude');
+    }
     return (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('\n');
   }
 
