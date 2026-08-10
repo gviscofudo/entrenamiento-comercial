@@ -1,3 +1,4 @@
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
   #fudo-sim * { box-sizing: border-box; }
@@ -217,9 +218,105 @@
     letter-spacing:0.08em; color: #1a1a1a; background: var(--gold); border-radius: 6px;
     padding: 4px 9px; margin-bottom: 10px; font-weight:800;
   }
+
+  /* ---- Login (mismo patrón/proyecto de Supabase que el Hub / Cotizador) ---- */
+  #fudo-sim #loginScreen {
+    position: fixed; inset: 0; background: rgba(36,26,18,0.35); z-index: 999;
+    display: flex; align-items: center; justify-content: center; padding: 1rem;
+  }
+  #fudo-sim .login-box {
+    background: #fff; border-radius: 16px; border: 1px solid var(--line);
+    box-shadow: 0 8px 40px rgba(36,26,18,0.18); width: 100%; max-width: 400px; overflow: hidden;
+  }
+  #fudo-sim .login-head { background: var(--gold); padding: 1.75rem; text-align: center; }
+  #fudo-sim .login-head img { height: 28px; display: block; margin: 0 auto 12px; }
+  #fudo-sim .login-head p { font-size: 12px; color: rgba(255,255,255,.85); font-weight: 600; margin-top: 4px; }
+  #fudo-sim .login-body { padding: 1.75rem; }
+  #fudo-sim .lf-label { font-size: 12px; font-weight: 700; color: var(--bone); margin-bottom: 5px; display: block; }
+  #fudo-sim .lf-input {
+    width: 100%; padding: 10px 13px; border: 1.5px solid var(--line); border-radius: 8px;
+    font-size: 14px; color: var(--bone); outline: none; margin-bottom: 1rem; background: #fff;
+    font-family: inherit;
+  }
+  #fudo-sim .lf-input:focus { border-color: var(--gold); }
+  #fudo-sim .lf-btn {
+    width: 100%; padding: 11px; background: var(--gold); color: #fff; border: none; border-radius: 8px;
+    font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  #fudo-sim .lf-btn:hover { background: var(--gold-dark); }
+  #fudo-sim .lf-btn:disabled { opacity: .6; cursor: not-allowed; }
+  #fudo-sim .lf-btn-sec {
+    width: 100%; padding: 10px; background: transparent; color: var(--gold); border: 1.5px solid var(--gold);
+    border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; margin-top: .6rem;
+  }
+  #fudo-sim .lf-btn-sec:hover { background: var(--bg-panel-2); }
+  #fudo-sim .lf-divider { display: flex; align-items: center; gap: 10px; margin: .75rem 0; color: var(--bone-dim); font-size: 11px; }
+  #fudo-sim .lf-divider::before, #fudo-sim .lf-divider::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+  #fudo-sim .lf-error { font-size: 12px; color: var(--coral); background: rgba(224,71,59,0.08); border-radius: 6px; padding: 8px 12px; margin-bottom: 1rem; display: none; }
+  #fudo-sim .lf-error.show { display: block; }
+  #fudo-sim .lf-success { font-size: 12px; color: #1E9E5D; background: rgba(30,158,93,0.08); border-radius: 6px; padding: 8px 12px; margin-bottom: 1rem; display: none; border: 1px solid rgba(30,158,93,.2); }
+  #fudo-sim .lf-success.show { display: block; }
+  #fudo-sim .lf-link { font-size: 12px; text-align: center; color: var(--bone-dim); margin-top: .75rem; }
+  #fudo-sim .lf-link a { color: var(--gold); font-weight: 700; cursor: pointer; text-decoration: none; }
+  #fudo-sim .lf-link a:hover { text-decoration: underline; }
+  #fudo-sim .role-pick { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 1rem; }
+  #fudo-sim .rp { border: 2px solid var(--line); border-radius: 8px; padding: 10px 6px; cursor: pointer; text-align: center; background: #fff; }
+  #fudo-sim .rp:hover { border-color: var(--gold); }
+  #fudo-sim .rp.on { border-color: var(--gold); background: var(--bg-panel-2); }
+  #fudo-sim .rp-name { font-size: 11.5px; font-weight: 700; color: var(--bone); }
+  #fudo-sim .rp.on .rp-name { color: var(--gold-dark); }
+  #fudo-sim .user-chip {
+    display:flex; align-items:center; gap:7px; font-size:12px; font-weight:600; color: var(--bone);
+    background: var(--bg-panel); border: 1.5px solid var(--line); border-radius: 20px; padding: 4px 12px 4px 6px;
+  }
+  #fudo-sim .user-avatar { width:22px; height:22px; border-radius:50%; background:var(--gold); color:#fff; font-size:10px; font-weight:800; display:flex; align-items:center; justify-content:center; }
+  #fudo-sim .role-badge { font-size: 9.5px; padding: 2px 8px; border-radius: 20px; font-weight: 700; text-transform: uppercase; }
+  #fudo-sim .role-badge.cs { background:#EEF2FF; color:#4F46E5; }
+  #fudo-sim .role-badge.inbound { background:#F0FDF4; color:#16A34A; }
+  #fudo-sim .role-badge.outbound { background:#FFF7ED; color:#C2410C; }
+  #fudo-sim .role-badge.admin { background:#1A1464; color:#fff; }
+  @keyframes fs-spin { to { transform: rotate(360deg); } }
 </style>
 
 <div id="fudo-sim">
+  <div id="loginScreen">
+    <div class="login-box">
+      <div class="login-head">
+        <img src="https://fu.do/assets/img/fudo_logo_light-adf69c8f.svg" alt="Fudo">
+        <p id="loginHeadTxt">Ring de Negociación — Ingresá con tu cuenta</p>
+      </div>
+      <div class="login-body" id="panelLogin">
+        <div class="lf-error" id="loginError"></div>
+        <label class="lf-label" for="loginEmail">Email</label>
+        <input class="lf-input" type="email" id="loginEmail" placeholder="tu@fudo.com" autocomplete="email">
+        <label class="lf-label" for="loginPass">Contraseña</label>
+        <input class="lf-input" type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password">
+        <button class="lf-btn" id="loginBtn">Ingresar</button>
+        <div class="lf-divider">o</div>
+        <button class="lf-btn-sec" id="showRegisterBtn">Crear cuenta nueva</button>
+        <div class="lf-link">Usá la misma cuenta del Toolkit CS (Cotizador, Guru, etc.)</div>
+      </div>
+      <div class="login-body" id="panelRegister" style="display:none">
+        <div class="lf-error" id="regError"></div>
+        <div class="lf-success" id="regSuccess"></div>
+        <label class="lf-label" for="regName">Nombre completo</label>
+        <input class="lf-input" type="text" id="regName" placeholder="Ej: María García" autocomplete="name">
+        <label class="lf-label" for="regEmail">Email</label>
+        <input class="lf-input" type="email" id="regEmail" placeholder="tu@fudo.com" autocomplete="email">
+        <label class="lf-label" for="regPass">Contraseña</label>
+        <input class="lf-input" type="password" id="regPass" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
+        <label class="lf-label">¿Cuál es tu equipo?</label>
+        <div class="role-pick">
+          <div class="rp on" id="rpCS" data-role="cs" data-role-id="1"><div class="rp-name">Customer Success</div></div>
+          <div class="rp" id="rpInbound" data-role="inbound" data-role-id="2"><div class="rp-name">Inbound</div></div>
+          <div class="rp" id="rpOutbound" data-role="outbound" data-role-id="3"><div class="rp-name">Outbound</div></div>
+        </div>
+        <button class="lf-btn" id="regBtn">Crear cuenta</button>
+        <div class="lf-link"><a id="backToLoginBtn">← Volver al inicio de sesión</a></div>
+      </div>
+    </div>
+  </div>
+
   <div class="topbar">
     <div class="brand">
       <div class="brand-mark">F</div>
@@ -231,6 +328,12 @@
     <div class="stats">
       <div class="stat"><div class="num hud-font" id="fs-points">0</div><div class="lbl">Puntos</div></div>
       <div class="stat"><div class="num hud-font" id="fs-level-num">1</div><div class="lbl">Nivel</div></div>
+      <div class="user-chip" id="userChip" style="display:none;">
+        <div class="user-avatar" id="userInitial">?</div>
+        <span id="userName">—</span>
+        <span class="role-badge" id="roleBadge" style="margin-left:2px;">—</span>
+      </div>
+      <button class="switch-btn" id="logoutBtn" style="display:none;">Salir</button>
     </div>
   </div>
 
@@ -406,37 +509,137 @@
     return text ? JSON.parse(text) : null;
   }
 
+  // ---------- Auth: mismo proyecto/tabla que el Hub (Cotizador, Guru, etc.) ----------
+  const HUB_SUPABASE_URL = 'https://xkqopmcfwxpajbvjgclg.supabase.co';
+  const HUB_SUPABASE_ANON = 'sb_publishable_BF6d6pYhth7H2MGAn2PiqQ_d2IggNvd';
+  const sbAuth = window.supabase.createClient(HUB_SUPABASE_URL, HUB_SUPABASE_ANON);
+
+  let repId = null;
+  let repName = null;
+  let currentRole = 'cs';
+
+  async function mirrorRepToDataProject() {
+    // Espeja el usuario del Hub en el proyecto propio del entrenador (mismo id de auth),
+    // así el leaderboard puede hacer join con reps(name) dentro de su propia base.
+    try {
+      await sb('reps?on_conflict=id', {
+        method: 'POST',
+        headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+        body: JSON.stringify({ id: repId, name: repName }),
+      });
+    } catch (e) { console.error('No se pudo espejar el usuario en el proyecto de datos', e); }
+  }
+
+  async function onLoginSuccess(user) {
+    repId = user.id;
+    repName = user.email.split('@')[0];
+    document.getElementById('userInitial').textContent = repName.charAt(0).toUpperCase();
+    document.getElementById('userName').textContent = repName;
+    document.getElementById('userChip').style.display = 'flex';
+    document.getElementById('logoutBtn').style.display = '';
+    document.getElementById('loginScreen').style.display = 'none';
+
+    try {
+      const { data: profile } = await sbAuth.from('user_profiles').select('*,roles(name)').eq('id', user.id).single();
+      if (profile?.full_name) repName = profile.full_name;
+      currentRole = profile?.roles?.name || 'cs';
+    } catch (e) { /* sin perfil todavía */ }
+    document.getElementById('userName').textContent = repName;
+    document.getElementById('userInitial').textContent = repName.charAt(0).toUpperCase();
+    const rb = document.getElementById('roleBadge');
+    const labels = { cs: 'CS', inbound: 'Inbound', outbound: 'Outbound', admin: 'Admin' };
+    rb.textContent = labels[currentRole] || currentRole.toUpperCase();
+    rb.className = 'role-badge ' + currentRole;
+
+    // El panel de admin (cola de casos de Intercom) queda solo para el rol admin, igual que en el Hub.
+    document.querySelectorAll('#fudo-sim .admin-panel:not(.rehearsal)').forEach(el => {
+      el.style.display = currentRole === 'admin' ? '' : 'none';
+    });
+
+    await mirrorRepToDataProject();
+    await bootApp();
+  }
+
+  document.getElementById('loginBtn').addEventListener('click', async () => {
+    const email = document.getElementById('loginEmail').value.trim();
+    const pass = document.getElementById('loginPass').value;
+    const btn = document.getElementById('loginBtn');
+    const err = document.getElementById('loginError');
+    err.classList.remove('show'); btn.disabled = true; btn.textContent = 'Ingresando…';
+    const { data, error } = await sbAuth.auth.signInWithPassword({ email, password: pass });
+    if (error) {
+      err.textContent = error.message === 'Invalid login credentials' ? 'Email o contraseña incorrectos' : error.message;
+      err.classList.add('show'); btn.disabled = false; btn.textContent = 'Ingresar';
+      return;
+    }
+    await onLoginSuccess(data.user);
+    btn.disabled = false; btn.textContent = 'Ingresar';
+  });
+
+  document.getElementById('logoutBtn').addEventListener('click', async () => {
+    await sbAuth.auth.signOut();
+    document.getElementById('userChip').style.display = 'none';
+    document.getElementById('logoutBtn').style.display = 'none';
+    document.getElementById('loginEmail').value = '';
+    document.getElementById('loginPass').value = '';
+    document.getElementById('loginScreen').style.display = 'flex';
+  });
+
+  document.getElementById('showRegisterBtn').addEventListener('click', () => {
+    document.getElementById('panelLogin').style.display = 'none';
+    document.getElementById('panelRegister').style.display = '';
+    document.getElementById('loginHeadTxt').textContent = 'Crear cuenta nueva';
+  });
+  document.getElementById('backToLoginBtn').addEventListener('click', () => {
+    document.getElementById('panelRegister').style.display = 'none';
+    document.getElementById('panelLogin').style.display = '';
+    document.getElementById('loginHeadTxt').textContent = 'Ring de Negociación — Ingresá con tu cuenta';
+  });
+
+  let selectedRegRole = { name: 'cs', id: 1 };
+  document.querySelectorAll('#fudo-sim .rp').forEach(rp => {
+    rp.addEventListener('click', () => {
+      selectedRegRole = { name: rp.getAttribute('data-role'), id: Number(rp.getAttribute('data-role-id')) };
+      document.querySelectorAll('#fudo-sim .rp').forEach(x => x.classList.toggle('on', x === rp));
+    });
+  });
+
+  document.getElementById('regBtn').addEventListener('click', async () => {
+    const name = document.getElementById('regName').value.trim();
+    const email = document.getElementById('regEmail').value.trim();
+    const pass = document.getElementById('regPass').value;
+    const btn = document.getElementById('regBtn');
+    const err = document.getElementById('regError');
+    const ok = document.getElementById('regSuccess');
+    err.classList.remove('show'); ok.classList.remove('show');
+    if (!name) { err.textContent = 'Por favor ingresá tu nombre completo.'; err.classList.add('show'); return; }
+    if (!email) { err.textContent = 'Por favor ingresá tu email.'; err.classList.add('show'); return; }
+    if (pass.length < 6) { err.textContent = 'La contraseña debe tener al menos 6 caracteres.'; err.classList.add('show'); return; }
+    btn.disabled = true; btn.textContent = 'Creando cuenta…';
+    const { data, error } = await sbAuth.auth.signUp({ email, password: pass, options: { data: { full_name: name } } });
+    if (error) {
+      err.textContent = error.message === 'User already registered' ? 'Ya existe una cuenta con ese email.' : error.message;
+      err.classList.add('show'); btn.disabled = false; btn.textContent = 'Crear cuenta';
+      return;
+    }
+    if (data.user) {
+      try {
+        await sbAuth.from('user_profiles').insert({ id: data.user.id, full_name: name, role_id: selectedRegRole.id, active: true });
+      } catch (e) { console.error(e); }
+    }
+    ok.textContent = `✅ ¡Cuenta creada! Revisá tu email (${email}) y hacé click en el link de confirmación para activarla.`;
+    ok.classList.add('show'); btn.disabled = false; btn.textContent = 'Crear cuenta';
+    document.getElementById('regName').value = '';
+    document.getElementById('regEmail').value = '';
+    document.getElementById('regPass').value = '';
+  });
+
+  document.getElementById('loginPass').addEventListener('keydown', (e) => { if (e.key === 'Enter') document.getElementById('loginBtn').click(); });
+  document.getElementById('loginEmail').addEventListener('keydown', (e) => { if (e.key === 'Enter') document.getElementById('loginPass').focus(); });
+
   function monthKey() {
     const d = new Date();
     return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
-  }
-
-  // Identidad simple del ejecutivo (sin login real): un nombre + un id persistido en el navegador.
-  let repId = null;
-  let repName = null;
-  async function ensureRep() {
-    try {
-      repId = localStorage.getItem('fudo_rep_id');
-      repName = localStorage.getItem('fudo_rep_name');
-    } catch (e) { /* localStorage puede fallar en algunos contextos embebidos */ }
-    if (repId && repName) return;
-    let name = '';
-    while (!name) {
-      name = (window.prompt('¿Cómo te llamás? (aparece en la liga del equipo)') || '').trim();
-    }
-    try {
-      const rows = await sb('reps', {
-        method: 'POST',
-        headers: { 'Prefer': 'return=representation' },
-        body: JSON.stringify({ name }),
-      });
-      repId = rows[0].id;
-      repName = name;
-      localStorage.setItem('fudo_rep_id', repId);
-      localStorage.setItem('fudo_rep_name', repName);
-    } catch (e) {
-      console.error('No se pudo crear el ejecutivo en Supabase', e);
-    }
   }
 
   const chatEl = document.getElementById('fs-chat');
@@ -695,7 +898,6 @@ Devolvé SIEMPRE un JSON (nada de markdown, nada de texto fuera del JSON) con es
 
   // ---------- Progreso (Supabase) ----------
   async function loadProgress() {
-    await ensureRep();
     if (repId) {
       try {
         const rows = await sb(`progress?rep_id=eq.${repId}&select=points,mission_done,streak`);
@@ -1159,7 +1361,6 @@ Devolvé SOLO un objeto JSON (sin markdown, sin texto adicional) con esta forma 
     document.getElementById('fs-admin-url').value = '';
     document.getElementById('fs-admin-notes').value = '';
   });
-  loadQueue();
 
   sendBtn.addEventListener('click', sendMessage);
   inputEl.addEventListener('keydown', (e) => {
@@ -1167,6 +1368,17 @@ Devolvé SOLO un objeto JSON (sin markdown, sin texto adicional) con esta forma 
   });
   endBtn.addEventListener('click', endSimulation);
 
-  loadProgress();
+  // El arranque real de la app (progreso, liga, cola de admin) pasa a correr recién
+  // después de un login exitoso — ver onLoginSuccess() / bootApp().
+  async function bootApp() {
+    await loadProgress();
+    await loadQueue();
+  }
+
+  // Si ya había una sesión activa (mismo navegador, Hub o entrenador), entra directo sin pedir login de nuevo.
+  (async () => {
+    const { data: { session } } = await sbAuth.auth.getSession();
+    if (session?.user) await onLoginSuccess(session.user);
+  })();
 })();
 </script>
