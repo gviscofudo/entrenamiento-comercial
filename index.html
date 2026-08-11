@@ -923,6 +923,7 @@ ${MODULE_CATALOG_TEXT}
 Si el ejecutivo te pregunta qué plan o módulos tenés, respondé con estos datos reales. Si te propone un cambio de plan o de módulos, evaluá si tiene sentido según lo que necesitás — no aceptes ciegamente ni rechaces ciegamente, reaccioná según si te resuelve tu problema real.`;
     }
     sys += '\n\n' + COACH_INSTRUCTIONS;
+    sys += '\n\nRECORDATORIO FINAL, MUY IMPORTANTE: tu respuesta completa debe ser ÚNICAMENTE el objeto JSON de arriba — nada de texto, saludo ni explicación antes o después del JSON. Ni siquiera una palabra fuera de las llaves { }.';
     return sys;
   }
 
@@ -1240,7 +1241,24 @@ Si el ejecutivo te pregunta qué plan o módulos tenés, respondé con estos dat
 
   function parseJsonSafe(raw) {
     const clean = raw.replace(/```json|```/g, '').trim();
-    return JSON.parse(clean);
+    try {
+      return JSON.parse(clean);
+    } catch (e) {
+      // A veces el modelo mete texto antes/después del JSON: buscamos el primer { ... } completo.
+      const match = clean.match(/\{[\s\S]*\}/);
+      if (match) return JSON.parse(match[0]);
+      throw e;
+    }
+  }
+
+  // Para las respuestas de turno (chat), si el modelo rompe el formato JSON, degradamos con
+  // gracia: tratamos todo el texto como la respuesta en personaje, en vez de cortar la charla.
+  function parseTurnResponse(raw) {
+    try {
+      return parseJsonSafe(raw);
+    } catch (e) {
+      return { reply: raw.replace(/```json|```/g, '').trim(), prob: null, coach_tip: null, actionable: null };
+    }
   }
 
   async function sendMessage() {
@@ -1252,8 +1270,8 @@ Si el ejecutivo te pregunta qué plan o módulos tenés, respondé con estos dat
     messages.push({ role: 'user', content: text });
     loadingEl.style.display = 'block';
     try {
-      const raw = await callClaude(currentScenario.systemPrompt, messages, 350);
-      const parsed = parseJsonSafe(raw);
+      const raw = await callClaude(currentScenario.systemPrompt, messages, 400);
+      const parsed = parseTurnResponse(raw);
       const replyText = (parsed.reply || '').toString();
       messages.push({ role: 'assistant', content: replyText });
       addMsg('buyer', replyText);
