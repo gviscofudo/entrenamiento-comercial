@@ -65,6 +65,10 @@
   }
   #fudo-sim .persona-name { font-weight: 700; font-size: 14px; }
   #fudo-sim .persona-desc { font-size: 12px; color: var(--bone-dim); margin-top: 2px; }
+  #fudo-sim .persona-account {
+    font-size: 11px; margin-top: 6px; color: var(--gold-dark); font-weight: 700;
+    background: rgba(255,90,31,0.08); display: inline-block; padding: 3px 9px; border-radius: 6px;
+  }
 
   #fudo-sim details.refpanel {
     background: var(--bg-panel-2); border: 1px solid var(--line); border-radius: 10px;
@@ -95,6 +99,14 @@
     max-width:100%; font-size:12.5px; border-radius: 10px;
   }
   #fudo-sim .msg.coach b { color: #3B5FE0; }
+
+  #fudo-sim .actionable-wrap { display:flex; justify-content:center; margin: 4px 0 12px; }
+  #fudo-sim .actionable-btn {
+    background: #fff; border: 1.5px dashed var(--gold); color: var(--gold-dark); font-weight: 700;
+    font-size: 12px; padding: 8px 14px; border-radius: 20px; cursor: pointer; font-family: inherit;
+  }
+  #fudo-sim .actionable-btn:hover { background: rgba(255,90,31,0.06); }
+  #fudo-sim .actionable-btn.done { border-style: solid; border-color: #1E9E5D; color: #1E9E5D; cursor: default; opacity: 0.85; }
 
   #fudo-sim .quickrow { display:flex; flex-wrap:wrap; gap:6px; margin-bottom: 10px; }
   #fudo-sim .qbtn {
@@ -511,8 +523,14 @@
         <div>
           <div class="persona-name" id="fs-persona-name"></div>
           <div class="persona-desc" id="fs-persona-desc"></div>
+          <div class="persona-account" id="fs-persona-account" style="display:none;"></div>
         </div>
       </div>
+
+      <details class="refpanel" id="fs-plan-catalog-panel">
+        <summary>📋 Planes y módulos reales de FUDO</summary>
+        <div class="refbody" id="fs-plan-catalog-body"></div>
+      </details>
 
       <details class="refpanel">
         <summary>📚 Marco teórico de negociación usado acá</summary>
@@ -796,6 +814,8 @@
         opening: r.opening,
         openingProb: r.opening_prob,
         system: r.system_prompt,
+        currentPlan: r.current_plan || null,
+        currentModules: r.current_modules || [],
       }));
     } catch (e) {
       console.error('No se pudieron cargar los casos de la categoría ' + catId, e);
@@ -804,6 +824,35 @@
     return casesCache[catId];
   }
 
+
+  // ---- Catálogo real de planes y módulos de FUDO (para que la charla sea precisa) ----
+  const PLAN_CATALOG = [
+    { name: 'Plan Inicial', price: 20900, incluye: 'Ventas por mostrador, caja y arqueos, impresión de comandas y precuentas, descuentos, carta QR, usuarios ilimitados, roles, control de propinas, gastos básicos, categorías/combos/modificadores de productos, app para camareros.' },
+    { name: 'Plan Avanzado', price: 41000, incluye: 'Todo lo del Inicial, más: control de inventario y recetas, subingredientes, mermas, base de datos y cuentas corrientes de clientes/proveedores, reportes gráficos (ventas, stock, compras, gastos), pedido desde la mesa con Carta QR, cierre parcial de ventas.' },
+    { name: 'Plan Pro', price: 65000, incluye: 'Todo lo del Avanzado, más: múltiples cajas y turnos, asignación de cajas por usuario, arqueos ciegos, PIN de autorización, API de propósito general, distintas listas de precios, inventario valorizado, cuentas a cobrar, estado de resultados, flujo de caja, carga de facturas por foto, fichas técnicas.' },
+  ];
+  const MODULE_CATALOG = [
+    { name: 'Monitor de Cocina (KDS)', price: 19500, desc: 'Gestiona comandas digitales en cocina.' },
+    { name: 'Gestión de Mesas', price: 8500, desc: 'Optimiza el servicio en las mesas.' },
+    { name: 'Facturación Electrónica', price: 13500, desc: 'Emite documentos fiscales.' },
+    { name: 'Delivery Apps', price: 19500, desc: 'Centraliza pedidos de apps de delivery.' },
+    { name: 'Ventas por Comensal', price: 13500, desc: 'Separa ventas sobre una misma mesa.' },
+    { name: 'Balanzas', price: 19500, desc: 'Venta de productos por peso.' },
+    { name: 'Recepcionista IA', price: 55000, desc: 'Responde consultas y toma reservas por WhatsApp.' },
+    { name: 'Tienda Online', price: null, desc: 'Pedidos propios sin depender de apps de delivery (gratis/plus/de pago según el caso).' },
+  ];
+  const PLAN_CATALOG_TEXT = PLAN_CATALOG.map(p => `${p.name} ($${p.price.toLocaleString('es-AR')}/mes): ${p.incluye}`).join('\n');
+  const MODULE_CATALOG_TEXT = MODULE_CATALOG.map(m => `${m.name} (${m.price ? '$' + m.price.toLocaleString('es-AR') + '/mes' : 'costo variable'}): ${m.desc}`).join('\n');
+
+  function renderPlanCatalogPanel() {
+    const el = document.getElementById('fs-plan-catalog-body');
+    if (!el) return;
+    el.innerHTML =
+      '<div style="font-weight:700; font-size:11.5px; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:6px; color:var(--bone-dim);">Planes</div>' +
+      PLAN_CATALOG.map(p => `<div class="ladder-row"><div class="ladder-n" style="background:var(--gold);">$</div><div><b>${escapeHtml(p.name)}</b> — $${p.price.toLocaleString('es-AR')}/mes<br><span style="opacity:0.8;">${escapeHtml(p.incluye)}</span></div></div>`).join('') +
+      '<div style="font-weight:700; font-size:11.5px; text-transform:uppercase; letter-spacing:0.06em; margin:14px 0 6px; color:var(--bone-dim);">Módulos (independientes del plan)</div>' +
+      MODULE_CATALOG.map(m => `<div class="ladder-row"><div class="ladder-n" style="background:#3B5FE0;">+</div><div><b>${escapeHtml(m.name)}</b>${m.price ? ' — $' + m.price.toLocaleString('es-AR') + '/mes' : ''}<br><span style="opacity:0.8;">${escapeHtml(m.desc)}</span></div></div>`).join('');
+  }
 
   const RUBRICS = {
     venta: {
@@ -856,13 +905,24 @@
   };
 
   const COACH_INSTRUCTIONS = `
-Además de responder en personaje, tenés una segunda tarea silenciosa: evaluar el ÚLTIMO mensaje del EJECUTIVO usando técnicas reconocidas de negociación y ventas: empatía táctica, reflejo (mirroring), etiquetado de emociones (labeling) y preguntas calibradas de Chris Voss; el método SPIN Selling (situación, problema, implicación, necesidad-beneficio) de Neil Rackham; la técnica Sentir-Sentido-Descubierto para objeciones; la negociación basada en intereses de Fisher & Ury (separar a la persona del problema, enfocarse en intereses reales); el método Challenger Sale de Dixon & Adamson (enseñar con una perspectiva nueva, adaptar el mensaje, tomar el control de la conversación) para casos complejos o de venta consultiva; y, si el cliente está enojado o el caso es complejo, el método HEARD (Escuchar, Empatizar, Disculparse, Resolver, Diagnosticar la causa de fondo).
+Además de responder en personaje, tenés una segunda tarea silenciosa: evaluar el ÚLTIMO mensaje del EJECUTIVO usando técnicas reconocidas de negociación y ventas: empatía táctica, reflejo (mirroring), etiquetado de emociones (labeling) y preguntas calibradas de Chris Voss; el método SPIN Selling (situación, problema, implicación, necesidad-beneficio) de Neil Rackham; la técnica Sentir-Sentido-Descubierto para objeciones; la negociación basada en intereses de Fisher & Ury (separar a la persona del problema, enfocarse en intereses reales); el método Challenger Sale de Dixon & Adamson (enseñar con una perspectiva nueva, adaptar el mensaje, tomar el control de la conversación) para casos complejos o de venta consultiva; y, si el cliente está enojado o el caso es complejo, el método HEARD (Escuchar, Empatizar, Disculparse, Resolver, Diagnosticar la causa de fondo). Si conocés el estado real de la cuenta del cliente (plan y módulos), marcá también si el ejecutivo dio información incorrecta sobre qué incluye cada plan o módulo.
+Tenés una tercera tarea: detectar si el ejecutivo, en su ÚLTIMO mensaje, se comprometió a un ACCIONABLE concreto y ejecutable sobre la cuenta (cambiar de plan, sumar o sacar un módulo, aplicar un descuento, pausar o reactivar la cuenta, etc.). Si lo hizo, describilo corto para mostrarlo como botón de acción; si no dijo nada ejecutable todavía, dejalo en null.
 Devolvé SIEMPRE un JSON (nada de markdown, nada de texto fuera del JSON) con esta forma exacta:
-{"reply":"tu respuesta en personaje, 1-3 oraciones, español, sin markdown","prob":0-100,"coach_tip":"1 frase corta y accionable en español mencionando qué técnica podría haber usado, o null si el mensaje del ejecutivo ya fue sólido y no hay margen claro de mejora"}
+{"reply":"tu respuesta en personaje, 1-3 oraciones, español, sin markdown","prob":0-100,"coach_tip":"1 frase corta y accionable en español mencionando qué técnica podría haber usado, o null si el mensaje del ejecutivo ya fue sólido y no hay margen claro de mejora","actionable":"1 frase corta en infinitivo describiendo la acción concreta a ejecutar (ej: 'Cambiar a Plan Pro', 'Agregar módulo Gestión de Mesas', 'Aplicar 20% de descuento por 2 meses'), o null si el ejecutivo no propuso nada ejecutable en este mensaje"}
 "prob" representa qué tan cerca está el cliente de avanzar (comprar, quedarse, reactivar o contratar el upgrade, según corresponda) a partir de lo que el ejecutivo acaba de decir.`;
 
   function buildSystemPrompt(caseObj) {
-    let sys = caseObj.system + '\n' + COACH_INSTRUCTIONS;
+    let sys = caseObj.system;
+    if (caseObj.currentPlan) {
+      const modsTxt = caseObj.currentModules && caseObj.currentModules.length ? caseObj.currentModules.join(', ') : 'ninguno';
+      sys += `\n\nESTADO REAL DE TU CUENTA FUDO (usalo para responder con precisión si te preguntan): tenés ${caseObj.currentPlan}, con estos módulos adicionales activos: ${modsTxt}.
+Catálogo real de planes de FUDO:
+${PLAN_CATALOG_TEXT}
+Catálogo real de módulos (se suman a cualquier plan, con costo aparte):
+${MODULE_CATALOG_TEXT}
+Si el ejecutivo te pregunta qué plan o módulos tenés, respondé con estos datos reales. Si te propone un cambio de plan o de módulos, evaluá si tiene sentido según lo que necesitás — no aceptes ciegamente ni rechaces ciegamente, reaccioná según si te resuelve tu problema real.`;
+    }
+    sys += '\n\n' + COACH_INSTRUCTIONS;
     return sys;
   }
 
@@ -1126,6 +1186,28 @@ Devolvé SIEMPRE un JSON (nada de markdown, nada de texto fuera del JSON) con es
     chatEl.scrollTop = chatEl.scrollHeight;
   }
 
+  let actionablesTotal = 0;
+  let actionablesExecuted = 0;
+  function addActionable(text) {
+    actionablesTotal++;
+    const wrap = document.createElement('div');
+    wrap.className = 'actionable-wrap';
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'actionable-btn';
+    btn.innerHTML = '✅ Ejecutar: ' + escapeHtml(text);
+    btn.addEventListener('click', () => {
+      if (btn.disabled) return;
+      btn.disabled = true;
+      btn.classList.add('done');
+      btn.innerHTML = '✔️ Ejecutado: ' + escapeHtml(text);
+      actionablesExecuted++;
+    });
+    wrap.appendChild(btn);
+    chatEl.appendChild(wrap);
+    chatEl.scrollTop = chatEl.scrollHeight;
+  }
+
   function setTension(pct) {
     tensionFill.style.width = pct + '%';
     tensionPct.textContent = pct + '%';
@@ -1179,6 +1261,9 @@ Devolvé SIEMPRE un JSON (nada de markdown, nada de texto fuera del JSON) con es
       if (instructorEnabled && parsed.coach_tip && String(parsed.coach_tip).toLowerCase() !== 'null') {
         addMsg('coach', parsed.coach_tip);
       }
+      if (parsed.actionable && String(parsed.actionable).toLowerCase() !== 'null') {
+        addActionable(parsed.actionable);
+      }
     } catch (e) {
       addMsg('system', 'No se pudo conectar con el simulador: ' + (e && e.message ? e.message : 'error desconocido'));
     }
@@ -1198,7 +1283,13 @@ Devolvé SIEMPRE un JSON (nada de markdown, nada de texto fuera del JSON) con es
     const rubric = currentScenario.rubric;
     const transcript = messages.map((m, i) => (m.role === 'user' ? 'EJECUTIVO FUDO' : 'CLIENTE') + ' (turno ' + i + '): ' + m.content).join('\n');
     const jsonShape = rubric.criteria.map(c => `"${c.key}":0-10`).join(',');
-    const rubricPrompt = `Evaluá esta negociación: ${rubric.context}.\nTranscripción con número de turno:\n${transcript}\n\nDevolvé SOLO un objeto JSON (sin markdown, sin texto adicional) con esta forma exacta:
+    const planContext = currentScenario.currentPlan
+      ? `\nEstado real de la cuenta del cliente: ${currentScenario.currentPlan}${currentScenario.currentModules && currentScenario.currentModules.length ? ' + módulos: ' + currentScenario.currentModules.join(', ') : ' (sin módulos)'}. Si el ejecutivo dio información incorrecta sobre qué incluye un plan o módulo (según este catálogo real), mencionalo en el feedback:\n${PLAN_CATALOG_TEXT}\n${MODULE_CATALOG_TEXT}`
+      : '';
+    const actionableContext = actionablesTotal > 0
+      ? `\nDurante la charla se detectaron ${actionablesTotal} accionable(s) concreto(s) propuestos por el ejecutivo, de los cuales ${actionablesExecuted} quedaron marcados como ejecutados con el botón de la interfaz. Si quedaron accionables sin ejecutar, mencionalo brevemente en el feedback como algo para no perder de vista.`
+      : '';
+    const rubricPrompt = `Evaluá esta negociación: ${rubric.context}.${planContext}${actionableContext}\nTranscripción con número de turno:\n${transcript}\n\nDevolvé SOLO un objeto JSON (sin markdown, sin texto adicional) con esta forma exacta:
 {${jsonShape},
 "feedback":"2-3 frases de feedback general concreto y accionable en español rioplatense",
 "momentos":[
@@ -1264,12 +1355,22 @@ Elegí entre 2 y 3 momentos como máximo: los turnos del ejecutivo con mayor imp
       momentsHtml = '<div class="moments"><h4>Momentos clave para revisar</h4><div class="moment-why">No se detectaron momentos con margen claro de mejora — buen manejo general de la conversación.</div></div>';
     }
 
+    let actionablesHtml = '';
+    if (actionablesTotal > 0) {
+      const allDone = actionablesExecuted === actionablesTotal;
+      actionablesHtml = `<div class="feedback-text" style="margin-top:10px; ${allDone ? 'color:#1E9E5D;' : 'color:var(--coral);'}">
+        ${allDone ? '✓' : '⚠️'} Accionables propuestos en la charla: ${actionablesExecuted}/${actionablesTotal} ejecutados con el botón.
+        ${allDone ? '' : ' Revisá si te quedó algo prometido sin dejar registrado.'}
+      </div>`;
+    }
+
     document.getElementById('fs-scorecard').innerHTML = `
       <div class="scorecard">
         <h3>Resultado: ${score10}/10</h3>
         ${rows}
         <div class="feedback-text">${escapeHtml(scores.feedback)}</div>
         <div class="points-earned">+${pointsEarned} puntos ganados</div>
+        ${actionablesHtml}
         ${momentsHtml}
       </div>
     `;
@@ -1336,6 +1437,7 @@ Elegí entre 2 y 3 momentos como máximo: los turnos del ejecutivo con mayor imp
         <div class="cat-tag" style="background:${CAT_COLORS[catId] || '#FF5A1F'};">Caso ${i + 1}</div>
         <div class="cat-name">${escapeHtml(c.persona.name)}</div>
         <div class="cat-desc">${escapeHtml(c.persona.desc)}</div>
+        ${c.currentPlan ? `<div class="persona-account" style="margin-top:8px;">💳 ${escapeHtml(c.currentPlan)}${c.currentModules && c.currentModules.length ? ' + ' + escapeHtml(c.currentModules.join(', ')) : ''}</div>` : ''}
       </div>
     `).join('');
     grid.querySelectorAll('.cat-card').forEach((card, i) => {
@@ -1358,6 +1460,8 @@ Elegí entre 2 y 3 momentos como máximo: los turnos del ejecutivo con mayor imp
     });
     messages = [];
     ended = false;
+    actionablesTotal = 0;
+    actionablesExecuted = 0;
 
     const isPersonalMode = currentScenario.isRehearsal || currentScenario.isInterview;
     document.getElementById('fs-picker').style.display = 'none';
@@ -1381,6 +1485,15 @@ Elegí entre 2 y 3 momentos como máximo: los turnos del ejecutivo con mayor imp
     document.getElementById('fs-persona-avatar').textContent = currentScenario.persona.avatar;
     document.getElementById('fs-persona-name').textContent = currentScenario.persona.name;
     document.getElementById('fs-persona-desc').textContent = currentScenario.persona.desc;
+    const acctEl = document.getElementById('fs-persona-account');
+    if (currentScenario.currentPlan) {
+      const modsTxt = currentScenario.currentModules && currentScenario.currentModules.length
+        ? ' + ' + currentScenario.currentModules.join(', ') : ' (sin módulos adicionales)';
+      acctEl.textContent = '💳 Cuenta actual: ' + currentScenario.currentPlan + modsTxt;
+      acctEl.style.display = 'inline-block';
+    } else {
+      acctEl.style.display = 'none';
+    }
     document.getElementById('fs-tension-left').textContent = currentScenario.tensionLabels.left;
     document.getElementById('fs-tension-right').textContent = currentScenario.tensionLabels.right;
     document.getElementById('fs-tension-note').textContent = currentScenario.tensionLabels.note || 'probabilidad de avanzar';
@@ -1415,6 +1528,8 @@ Elegí entre 2 y 3 momentos como máximo: los turnos del ejecutivo con mayor imp
     if (tab === 'ranking') renderTeamRanking();
     if (tab === 'challenge') loadChallenges();
   }
+
+  renderPlanCatalogPanel();
 
   document.querySelectorAll('#fudo-sim .tab-btn[data-tab]').forEach(btn => {
     btn.addEventListener('click', () => activateTab(btn.getAttribute('data-tab')));
