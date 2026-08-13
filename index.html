@@ -88,6 +88,7 @@
   #fudo-sim .tension-track { height: 10px; border-radius: 6px; background: rgba(36,26,18,0.08); overflow:hidden; position:relative; }
   #fudo-sim .tension-fill { height: 100%; border-radius: 6px; transition: width 0.6s ease, background 0.6s ease; width: 50%; background: var(--gold); }
   #fudo-sim .tension-tags { display:flex; justify-content:space-between; font-size:10px; color: var(--bone-dim); margin-top:4px; }
+  #fudo-sim .challenge-timer { font-weight:800; font-size:11px; color: var(--gold-dark); }
 
   #fudo-sim .chat { height: 300px; overflow-y:auto; padding: 4px 2px; margin-bottom: 10px; }
   #fudo-sim .msg { max-width: 85%; margin-bottom: 10px; padding: 9px 13px; border-radius: 12px; font-size: 13.5px; line-height:1.45; }
@@ -462,24 +463,38 @@
     <!-- TAB: Desafíos (desde el menú ☰) -->
     <div class="tab-content" data-tab-content="challenge" style="display:none;">
       <div class="picker-sub" style="font-size:16px; margin-bottom:10px;">🥊 Desafiar a un compañero</div>
-      <p style="margin-top:0; font-size:12.5px; color:var(--bone-dim);">Elegí una categoría, creá el desafío y compartiselo — quien lo acepte compite con el mismo caso y comparás los resultados.</p>
-      <input type="text" id="fs-challenge-title" placeholder="Título del desafío (ej: 'Objeción de precio - ronda 1')">
+      <p style="margin-top:0; font-size:12.5px; color:var(--bone-dim);">Elegís a quién desafiar, jugás tu turno ahora mismo (con 5 min de reloj), y cuando tu compañero acepte y juegue el mismo caso, se compara quién cerró con mejor puntaje.</p>
+      <input type="text" id="fs-challenge-title" placeholder="Título del desafío (opcional, ej: 'Ronda 1')">
       <select id="fs-challenge-cat">
         <option value="venta">Venta</option>
         <option value="retencion">Retención</option>
         <option value="recupero">Recupero</option>
         <option value="upselling">Up-selling</option>
       </select>
-      <button class="admin-btn" id="fs-challenge-create">Crear desafío</button>
+      <select id="fs-challenge-opponent">
+        <option value="">Elegí a quién desafiar…</option>
+      </select>
+      <button class="admin-btn" id="fs-challenge-create">🥊 Desafiar y jugar mi turno ahora</button>
       <div id="fs-challenge-status" style="margin-top:8px; font-size:11.5px; color: var(--bone-dim);"></div>
-      <div style="margin-top:16px; font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:var(--bone-dim); font-weight:700;">Desafíos activos</div>
+
+      <div style="margin-top:18px; font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:var(--bone-dim); font-weight:700;">Desafíos pendientes para vos</div>
+      <div id="fs-challenge-pending" style="margin-top:8px;"></div>
+
+      <div style="margin-top:18px; font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:var(--bone-dim); font-weight:700;">Tus desafíos (creados o jugados)</div>
       <div id="fs-challenge-list" style="margin-top:8px;"></div>
     </div>
 
     <!-- TAB: Admin (desde el menú ☰, solo rol admin) -->
     <div class="tab-content" data-tab-content="admin" style="display:none;">
       <div class="picker-sub" style="font-size:16px; margin-bottom:10px;">⚙️ Admin — configuración y banco de casos</div>
-      <p style="margin-top:0;"><b>Instructor en vivo</b></p>
+
+      <p style="margin-top:0;"><b>👥 Progreso del equipo</b></p>
+      <p style="font-size:11.5px; color:var(--bone-dim);">Cuántas simulaciones (tarjetas) lleva hechas cada ejecutivo, su nivel y sus puntos — para medir avance real.</p>
+      <div id="fs-admin-overview" style="margin-top:8px;">
+        <div style="font-size:12px; color:var(--bone-dim);">Cargando progreso del equipo…</div>
+      </div>
+
+      <p style="margin-top:20px;"><b>Instructor en vivo</b></p>
       <label><input type="checkbox" id="fs-instructor-toggle" checked> Mostrar burbuja de instructor durante la conversación (para todo el equipo)</label>
 
       <p style="margin-top:16px;"><b>Rotación de casos</b></p>
@@ -548,7 +563,11 @@
       </details>
 
       <div class="tension-wrap">
-        <div class="tension-label"><span id="fs-tension-left">Riesgo de pérdida</span><span id="fs-tension-right">Cierre probable</span></div>
+        <div class="tension-label">
+          <span id="fs-tension-left">Riesgo de pérdida</span>
+          <span id="fs-challenge-timer" class="challenge-timer" style="display:none;">⏱️ 05:00</span>
+          <span id="fs-tension-right">Cierre probable</span>
+        </div>
         <div class="tension-track"><div class="tension-fill" id="fs-tension"></div></div>
         <div class="tension-tags"><span id="fs-tension-pct">50%</span><span id="fs-tension-note">probabilidad de avanzar</span></div>
       </div>
@@ -959,14 +978,14 @@ Si el ejecutivo te pregunta qué plan o módulos tenés, respondé con estos dat
     } catch (e) { console.error('No se pudo guardar el progreso en Supabase', e); }
   }
 
-  async function logSessionAndScore(pointsEarned, score10, categoryId, caseName) {
+  async function logSessionAndScore(pointsEarned, score100, categoryId, caseName) {
     if (!repId) return;
     try {
       await sb('sessions', {
         method: 'POST', headers: { 'Prefer': 'return=minimal' },
         body: JSON.stringify({
           rep_id: repId, category: categoryId || 'repaso', case_name: caseName,
-          score: score10, points_earned: pointsEarned,
+          score: score100, points_earned: pointsEarned,
         }),
       });
       const mk = monthKey();
@@ -1030,10 +1049,59 @@ Si el ejecutivo te pregunta qué plan o módulos tenés, respondé con estos dat
     }
   }
 
+  // ---------- Admin: progreso de cada ejecutivo (tarjetas hechas, nivel, puntos) ----------
+  async function renderAdminOverview() {
+    const el = document.getElementById('fs-admin-overview');
+    if (!el) return;
+    try {
+      const rows = await sb('rpc/get_admin_overview', {
+        method: 'POST',
+        body: JSON.stringify({ p_role: 'admin' }),
+      });
+      if (!rows || !rows.length) {
+        el.innerHTML = '<div style="font-size:12px; color:var(--bone-dim);">Todavía no hay ejecutivos con actividad.</div>';
+        return;
+      }
+      rows.sort((a, b) => b.sessions_total - a.sessions_total);
+      el.innerHTML = `<div style="overflow-x:auto;">
+        <table style="width:100%; border-collapse:collapse; font-size:12px;">
+          <thead>
+            <tr style="text-align:left; color:var(--bone-dim); font-size:10.5px; text-transform:uppercase; letter-spacing:0.06em;">
+              <th style="padding:6px 8px;">Ejecutivo</th>
+              <th style="padding:6px 8px;">Equipo</th>
+              <th style="padding:6px 8px;">Nivel</th>
+              <th style="padding:6px 8px;">Tarjetas totales</th>
+              <th style="padding:6px 8px;">Tarjetas este mes</th>
+              <th style="padding:6px 8px;">Puntos totales</th>
+              <th style="padding:6px 8px;">Puntos este mes</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.map(r => {
+              const levelIdx = levelFor(r.points_lifetime);
+              return `<tr style="border-top:1px solid var(--line);">
+                <td style="padding:7px 8px; font-weight:600;">${escapeHtml(r.name)}</td>
+                <td style="padding:7px 8px;"><span class="role-badge ${escapeHtml(r.role)}">${escapeHtml(r.role)}</span></td>
+                <td style="padding:7px 8px;">${escapeHtml(LEVELS[levelIdx].name)}</td>
+                <td style="padding:7px 8px;">${r.sessions_total}</td>
+                <td style="padding:7px 8px;">${r.sessions_month}</td>
+                <td style="padding:7px 8px;">${r.points_lifetime}</td>
+                <td style="padding:7px 8px;">${r.points_month}</td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>`;
+    } catch (e) {
+      el.innerHTML = '<div style="font-size:12px; color:var(--bone-dim);">No se pudo cargar el progreso del equipo.</div>';
+      console.error(e);
+    }
+  }
+
   // ---------- Modo entrevista (candidatos externos) ----------
   let interviewContext = null; // {candidate, interviewer}
 
-  async function logInterviewSession(score10) {
+  async function logInterviewSession(score100) {
     if (!interviewContext) return;
     try {
       await sb('interview_sessions', {
@@ -1043,105 +1111,105 @@ Si el ejecutivo te pregunta qué plan o módulos tenés, respondé con estos dat
           interviewer: interviewContext.interviewer,
           category: currentCatId,
           case_id: currentScenario && currentScenario.id ? currentScenario.id : null,
-          score: score10,
+          score: score100,
         }),
       });
     } catch (e) { console.error('No se pudo registrar la entrevista', e); }
   }
 
   // ---------- Desafíos entre compañeros ----------
-  async function logChallengeResult(challengeId, score10, pointsEarned) {
+  async function logChallengeResult(challengeId, score100, pointsEarned) {
     try {
       await sb(`challenge_invites?challenge_id=eq.${challengeId}&rep_id=eq.${repId}`, {
         method: 'PATCH', headers: { 'Prefer': 'return=minimal' },
-        body: JSON.stringify({ score: score10, points_earned: pointsEarned, completed_at: new Date().toISOString() }),
+        body: JSON.stringify({ score: score100, points_earned: pointsEarned, completed_at: new Date().toISOString() }),
       });
     } catch (e) { console.error('No se pudo registrar el resultado del desafío', e); }
     loadChallenges();
   }
 
-  async function loadChallenges() {
-    const el = document.getElementById('fs-challenge-list');
-    if (!el) return;
+  async function loadOpponentOptions() {
+    const sel = document.getElementById('fs-challenge-opponent');
+    if (!sel) return;
     try {
-      const rows = await sb('challenges?select=*,challenge_invites(invited_name,score,points_earned,completed_at)&order=created_at.desc&limit=10');
-      if (!rows || !rows.length) {
-        el.innerHTML = '<div style="font-size:11.5px; color:var(--bone-dim);">Todavía no hay desafíos creados.</div>';
-        return;
-      }
-      el.innerHTML = rows.map(r => {
-        const invites = r.challenge_invites || [];
-        const done = invites.filter(i => i.completed_at);
-        const myInvite = invites.find(i => i.invited_name === repName);
-        const alreadyDone = myInvite && myInvite.completed_at;
-        const standings = done.slice().sort((a, b) => (b.points_earned || 0) - (a.points_earned || 0))
-          .map((i, idx) => `${idx + 1}. ${escapeHtml(i.invited_name)} — ${i.points_earned || 0} pts`).join('<br>');
-        return `<div class="queue-item" style="flex-direction:column; align-items:flex-start;">
-          <div style="display:flex; justify-content:space-between; width:100%; align-items:center; gap:8px;">
-            <b style="font-size:12px;">${escapeHtml(r.title || 'Desafío')} <span style="font-weight:400; color:var(--bone-dim);">(${escapeHtml(r.category)})</span></b>
-            <div style="display:flex; gap:6px; flex-shrink:0;">
-              <button type="button" class="qbtn" data-share-challenge="${r.id}" data-share-title="${escapeHtml(r.title || '')}" data-share-cat="${escapeHtml(r.category)}">📋 Compartir</button>
-              ${alreadyDone
-                ? '<span class="queue-status agregado">ya jugaste</span>'
-                : `<button type="button" class="qbtn ladder" data-accept-challenge="${r.id}" data-accept-cat="${escapeHtml(r.category)}">Aceptar</button>`}
-            </div>
-          </div>
-          <span style="font-size:11px; color:var(--bone-dim);">Creado por ${escapeHtml(r.created_by_name || '—')} · ${done.length}/${invites.length} completaron</span>
-          ${standings ? '<div style="font-size:11px; margin-top:4px;">' + standings + '</div>' : ''}
-        </div>`;
-      }).join('');
-      el.querySelectorAll('[data-share-challenge]').forEach(btn => {
-        btn.addEventListener('click', () => shareChallenge(
-          btn.getAttribute('data-share-challenge'), btn, btn.getAttribute('data-share-title'), btn.getAttribute('data-share-cat')
-        ));
-      });
-      el.querySelectorAll('[data-accept-challenge]').forEach(btn => {
-        btn.addEventListener('click', () => acceptChallenge(btn.getAttribute('data-accept-challenge'), btn.getAttribute('data-accept-cat')));
-      });
-    } catch (e) {
-      el.innerHTML = '<div style="font-size:11.5px; color:var(--bone-dim);">No se pudieron cargar los desafíos.</div>';
-    }
+      const rows = await sb(`reps?id=neq.${repId}&select=id,name&order=name.asc`);
+      sel.innerHTML = '<option value="">Elegí a quién desafiar…</option>' +
+        (rows || []).map(r => `<option value="${r.id}" data-name="${escapeHtml(r.name)}">${escapeHtml(r.name)}</option>`).join('');
+    } catch (e) { console.error('No se pudo cargar la lista de compañeros', e); }
   }
 
-  async function shareChallenge(challengeId, btnEl, title, category) {
-    const url = window.location.origin + window.location.pathname + '?challenge=' + challengeId;
-    const catLabel = TAG_LABELS[category] || category;
-    const text = `🥊 Te desafío a un Ring de Negociación: "${title || 'Sin título'}" (${catLabel}).\nEntrá y aceptalo acá: ${url}`;
-    const originalText = btnEl.textContent;
-    const flash = (msg) => { btnEl.textContent = msg; setTimeout(() => { btnEl.textContent = originalText; }, 1800); };
-
-    if (navigator.share) {
-      try {
-        await navigator.share({ title: 'Desafío del Ring de Negociación', text, url });
-        return;
-      } catch (e) { return; } // el usuario canceló el share nativo
-    }
+  async function loadChallenges() {
+    const pendingEl = document.getElementById('fs-challenge-pending');
+    const listEl = document.getElementById('fs-challenge-list');
+    if (!pendingEl || !listEl) return;
     try {
-      await navigator.clipboard.writeText(text);
-      flash('✓ Copiado');
+      const myInvites = await sb(`challenge_invites?rep_id=eq.${repId}&select=challenge_id`);
+      const myIds = [...new Set((myInvites || []).map(i => i.challenge_id))];
+      if (!myIds.length) {
+        pendingEl.innerHTML = '<div style="font-size:11.5px; color:var(--bone-dim);">No tenés desafíos pendientes.</div>';
+        listEl.innerHTML = '<div style="font-size:11.5px; color:var(--bone-dim);">Todavía no participaste de ningún desafío.</div>';
+        return;
+      }
+      const idsFilter = myIds.join(',');
+      const rows = await sb(`challenges?id=in.(${idsFilter})&select=*,challenge_invites(invited_name,rep_id,score,points_earned,completed_at)&order=created_at.desc`);
+
+      const pending = (rows || []).filter(r => {
+        const mine = (r.challenge_invites || []).find(i => i.rep_id === repId);
+        return mine && !mine.completed_at;
+      });
+
+      pendingEl.innerHTML = pending.length ? pending.map(r => `
+        <div class="queue-item" style="flex-direction:column; align-items:flex-start;">
+          <div style="display:flex; justify-content:space-between; width:100%; align-items:center; gap:8px;">
+            <b style="font-size:12px;">${escapeHtml(r.title || 'Desafío')} <span style="font-weight:400; color:var(--bone-dim);">(${TAG_LABELS[r.category] || escapeHtml(r.category)}) de ${escapeHtml(r.created_by_name || '—')}</span></b>
+            <button type="button" class="qbtn ladder" data-accept-challenge="${r.id}" data-accept-cat="${escapeHtml(r.category)}">🥊 Aceptar y jugar</button>
+          </div>
+        </div>
+      `).join('') : '<div style="font-size:11.5px; color:var(--bone-dim);">No tenés desafíos pendientes.</div>';
+      pendingEl.querySelectorAll('[data-accept-challenge]').forEach(btn => {
+        btn.addEventListener('click', () => acceptChallenge(btn.getAttribute('data-accept-challenge'), btn.getAttribute('data-accept-cat')));
+      });
+
+      listEl.innerHTML = (rows && rows.length) ? rows.map(r => {
+        const invites = r.challenge_invites || [];
+        const bothDone = invites.length === 2 && invites.every(i => i.completed_at);
+        let line;
+        if (bothDone) {
+          const [a, b] = invites;
+          const aScore = Number(a.score) || 0, bScore = Number(b.score) || 0;
+          const tie = aScore === bScore;
+          line = invites.map(i => {
+            const isWinner = !tie && Number(i.score) === Math.max(aScore, bScore);
+            return `${escapeHtml(i.invited_name)}: <b>${i.score != null ? Math.round(i.score) : '—'}/100</b>${isWinner ? ' 🏆' : ''}`;
+          }).join(' &nbsp;vs&nbsp; ') + (tie ? ' (empate)' : '');
+        } else {
+          line = invites.map(i => `${escapeHtml(i.invited_name)}: ${i.completed_at ? Math.round(i.score) + '/100' : 'pendiente'}`).join(' &nbsp;vs&nbsp; ');
+        }
+        return `<div class="queue-item" style="flex-direction:column; align-items:flex-start;">
+          <b style="font-size:12px;">${escapeHtml(r.title || 'Desafío')} <span style="font-weight:400; color:var(--bone-dim);">(${TAG_LABELS[r.category] || escapeHtml(r.category)})</span></b>
+          <span style="font-size:11.5px; margin-top:4px;">${line}</span>
+        </div>`;
+      }).join('') : '<div style="font-size:11.5px; color:var(--bone-dim);">Todavía no participaste de ningún desafío.</div>';
     } catch (e) {
-      window.prompt('Copiá este mensaje para compartir:', text);
+      pendingEl.innerHTML = '<div style="font-size:11.5px; color:var(--bone-dim);">No se pudieron cargar los desafíos.</div>';
+      console.error(e);
     }
   }
 
   async function acceptChallenge(challengeId, catId) {
     const statusEl = document.getElementById('fs-challenge-status');
     try {
-      const chRows = await sb(`challenges?id=eq.${challengeId}&select=case_id`);
+      const chRows = await sb(`challenges?id=eq.${challengeId}&select=case_id,title`);
       const caseId = chRows && chRows[0] ? chRows[0].case_id : null;
       let caseObj = null;
       if (caseId) {
         const rows = await sb(`cases?id=eq.${caseId}&select=*`);
         if (rows && rows[0]) {
           const r = rows[0];
-          caseObj = { id: r.id, persona: r.persona, tensionLabels: r.tension_labels, opening: r.opening, openingProb: r.opening_prob, system: r.system_prompt };
+          caseObj = { id: r.id, persona: r.persona, tensionLabels: r.tension_labels, opening: r.opening, openingProb: r.opening_prob, system: r.system_prompt, currentPlan: r.current_plan, currentModules: r.current_modules };
         }
       }
       if (!caseObj) { statusEl.textContent = 'No se encontró el caso del desafío.'; return; }
-      await sb('challenge_invites?on_conflict=challenge_id,invited_name', {
-        method: 'POST', headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' },
-        body: JSON.stringify({ challenge_id: challengeId, invited_name: repName, rep_id: repId }),
-      });
       activateScenario(caseObj, catId, { challengeId });
     } catch (e) {
       statusEl.textContent = 'No se pudo aceptar el desafío.';
@@ -1209,7 +1277,9 @@ Si el ejecutivo te pregunta qué plan o módulos tenés, respondé con estos dat
     chatEl.scrollTop = chatEl.scrollHeight;
   }
 
+  let lastProb = 50;
   function setTension(pct) {
+    lastProb = pct;
     tensionFill.style.width = pct + '%';
     tensionPct.textContent = pct + '%';
     tensionFill.style.background = pct < 35 ? 'var(--coral)' : (pct < 65 ? 'var(--gold)' : '#1E9E5D');
@@ -1328,35 +1398,38 @@ Elegí entre 2 y 3 momentos como máximo: los turnos del ejecutivo con mayor imp
   }
 
   function renderScorecard(scores, rubric) {
-    let weightedTotal = 0;
+    // El puntaje final ya NO es el promedio de la rúbrica: es el valor de la barra de tensión
+    // al momento de cerrar la negociación (0-100), como pediste. La rúbrica queda como detalle
+    // diagnóstico debajo, para entender el "por qué" del resultado.
+    const finalScore = Math.max(0, Math.min(100, Math.round(lastProb)));
+
     let rows = '';
     rubric.criteria.forEach(c => {
       const v = Math.max(0, Math.min(10, Number(scores[c.key]) || 0));
-      weightedTotal += v * (c.weight / 100);
       rows += `<div class="crit-row">
         <div class="crit-top"><span>${c.label}</span><span>${v}/10</span></div>
         <div class="crit-track"><div class="crit-fill" style="width:${v*10}%"></div></div>
       </div>`;
     });
-    const score10 = Math.round(weightedTotal * 10) / 10;
+
     let pointsEarned = 10;
-    if (score10 >= 8) pointsEarned += 25;
-    else if (score10 >= 6) pointsEarned += 15;
+    if (finalScore >= 80) pointsEarned += 25;
+    else if (finalScore >= 60) pointsEarned += 15;
     else pointsEarned += 5;
 
     const isPersonalMode = currentScenario && (currentScenario.isRehearsal || currentScenario.isInterview);
     if (!isPersonalMode) {
       state.points += pointsEarned;
-      if (score10 >= 8) state.missionDone = Math.min(3, state.missionDone + 1);
+      if (finalScore >= 80) state.missionDone = Math.min(3, state.missionDone + 1);
       saveProgress();
-      logSessionAndScore(pointsEarned, score10, currentCatId, currentScenario && currentScenario.persona ? currentScenario.persona.name : null);
+      logSessionAndScore(pointsEarned, finalScore, currentCatId, currentScenario && currentScenario.persona ? currentScenario.persona.name : null);
       renderStats();
     }
     if (currentScenario && currentScenario.isInterview) {
-      logInterviewSession(score10);
+      logInterviewSession(finalScore);
     }
     if (currentScenario && currentScenario.challengeId) {
-      logChallengeResult(currentScenario.challengeId, score10, pointsEarned);
+      logChallengeResult(currentScenario.challengeId, finalScore, pointsEarned);
     }
 
     let momentsHtml = '';
@@ -1384,7 +1457,9 @@ Elegí entre 2 y 3 momentos como máximo: los turnos del ejecutivo con mayor imp
 
     document.getElementById('fs-scorecard').innerHTML = `
       <div class="scorecard">
-        <h3>Resultado: ${score10}/10</h3>
+        <h3>Puntaje final: ${finalScore}/100</h3>
+        <div class="feedback-text" style="margin-top:-6px; margin-bottom:12px;">Es el valor de la barra de tensión al momento de cerrar — qué tan cerca quedó el cliente de avanzar.</div>
+        <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:var(--bone-dim); font-weight:700; margin-bottom:8px;">Detalle por criterio (para entender el resultado)</div>
         ${rows}
         <div class="feedback-text">${escapeHtml(scores.feedback)}</div>
         <div class="points-earned">+${pointsEarned} puntos ganados</div>
@@ -1465,6 +1540,36 @@ Elegí entre 2 y 3 momentos como máximo: los turnos del ejecutivo con mayor imp
 
   const CAT_COLORS = { venta: '#FF5A1F', retencion: '#E0473B', recupero: '#1E9E5D', upselling: '#3B5FE0' };
 
+  let challengeTimerInterval = null;
+  function clearChallengeTimer() {
+    if (challengeTimerInterval) { clearInterval(challengeTimerInterval); challengeTimerInterval = null; }
+    const el = document.getElementById('fs-challenge-timer');
+    if (el) el.style.display = 'none';
+  }
+  function startChallengeTimer(seconds) {
+    clearChallengeTimer();
+    let remaining = seconds;
+    const el = document.getElementById('fs-challenge-timer');
+    el.style.display = 'inline';
+    const render = () => {
+      const m = Math.floor(remaining / 60), s = remaining % 60;
+      el.textContent = '⏱️ ' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+      el.style.color = remaining <= 30 ? 'var(--coral)' : '';
+    };
+    render();
+    challengeTimerInterval = setInterval(() => {
+      remaining--;
+      render();
+      if (remaining <= 0) {
+        clearChallengeTimer();
+        if (!ended) {
+          addMsg('system', '⏱️ Se acabaron los 5 minutos del desafío — cerrando la simulación automáticamente.');
+          endSimulation();
+        }
+      }
+    }, 1000);
+  }
+
   function activateScenario(caseObj, catId, opts) {
     opts = opts || {};
     currentCatId = catId;
@@ -1529,6 +1634,12 @@ Elegí entre 2 y 3 momentos como máximo: los turnos del ejecutivo con mayor imp
     addMsg('buyer', currentScenario.opening);
     messages.push({ role: 'assistant', content: currentScenario.opening });
     setTension(currentScenario.openingProb);
+
+    if (currentScenario.challengeId) {
+      startChallengeTimer(300); // 5 minutos máximo por desafío
+    } else {
+      clearChallengeTimer();
+    }
   }
 
   document.querySelectorAll('#fudo-sim .cat-card[data-cat]').forEach(card => {
@@ -1545,6 +1656,7 @@ Elegí entre 2 y 3 momentos como máximo: los turnos del ejecutivo con mayor imp
     });
     if (tab === 'ranking') renderTeamRanking();
     if (tab === 'challenge') loadChallenges();
+    if (tab === 'admin') renderAdminOverview();
   }
 
   renderPlanCatalogPanel();
@@ -1579,6 +1691,7 @@ Elegí entre 2 y 3 momentos como máximo: los turnos del ejecutivo con mayor imp
   });
 
   document.getElementById('fs-switch').addEventListener('click', () => {
+    clearChallengeTimer();
     document.getElementById('fs-body').style.display = 'none';
     if (currentScenario && currentScenario.isRehearsal) {
       document.getElementById('fs-picker').style.display = 'block';
@@ -1723,6 +1836,7 @@ Devolvé SOLO un objeto JSON (sin markdown, sin texto adicional) con esta forma 
     await loadQueue();
     await loadInstructorSetting();
     await loadChallenges();
+    await loadOpponentOptions();
 
     // Si entró desde un link compartido de un desafío (?challenge=ID), lo llevamos directo ahí.
     const sharedChallengeId = new URLSearchParams(window.location.search).get('challenge');
@@ -1730,7 +1844,7 @@ Devolvé SOLO un objeto JSON (sin markdown, sin texto adicional) con esta forma 
       activateTab('challenge');
       // pequeño resaltado visual del desafío compartido, si sigue en la lista
       setTimeout(() => {
-        const card = document.querySelector(`[data-accept-challenge="${sharedChallengeId}"], [data-share-challenge="${sharedChallengeId}"]`);
+        const card = document.querySelector(`[data-accept-challenge="${sharedChallengeId}"]`);
         if (card && card.closest('.queue-item')) {
           card.closest('.queue-item').style.borderColor = 'var(--gold)';
           card.closest('.queue-item').style.borderWidth = '2px';
@@ -1799,23 +1913,41 @@ Devolvé SOLO un objeto JSON (sin markdown, sin texto adicional) con esta forma 
     challengeCreateBtn.addEventListener('click', async () => {
       const title = document.getElementById('fs-challenge-title').value.trim();
       const catId = document.getElementById('fs-challenge-cat').value;
+      const oppSel = document.getElementById('fs-challenge-opponent');
+      const opponentId = oppSel.value;
+      const opponentName = opponentId ? oppSel.options[oppSel.selectedIndex].getAttribute('data-name') : '';
       const statusEl = document.getElementById('fs-challenge-status');
+      if (!opponentId) {
+        statusEl.style.color = 'var(--coral)';
+        statusEl.textContent = 'Elegí a quién desafiar antes de crear el desafío.';
+        return;
+      }
       statusEl.style.color = 'var(--bone-dim)';
       statusEl.textContent = 'Creando desafío…';
       try {
         const { cases } = await getActiveCasesForMonth(catId);
         if (!cases.length) { statusEl.textContent = 'No hay casos cargados en esa categoría.'; return; }
         const caseObj = cases[Math.floor(Math.random() * cases.length)];
-        const rows = await sb('challenges', {
+        const chRows = await sb('challenges', {
           method: 'POST', headers: { 'Prefer': 'return=representation' },
           body: JSON.stringify({ created_by: repId, created_by_name: repName, category: catId, case_id: caseObj.id || null, title: title || null }),
         });
-        statusEl.textContent = '✓ Desafío creado. Compartilo con tus compañeros para que lo acepten.';
+        const challengeId = chRows[0].id;
+        await sb('challenge_invites', {
+          method: 'POST', headers: { 'Prefer': 'return=minimal' },
+          body: JSON.stringify([
+            { challenge_id: challengeId, invited_name: repName, rep_id: repId },
+            { challenge_id: challengeId, invited_name: opponentName, rep_id: opponentId },
+          ]),
+        });
+        statusEl.style.color = '#1E9E5D';
+        statusEl.textContent = `✓ Desafío creado contra ${opponentName}. ¡Jugá tu turno ahora!`;
         document.getElementById('fs-challenge-title').value = '';
-        loadChallenges();
+        activateScenario(caseObj, catId, { challengeId });
       } catch (e) {
         statusEl.style.color = 'var(--coral)';
         statusEl.textContent = 'No se pudo crear el desafío.';
+        console.error(e);
       }
     });
   }
