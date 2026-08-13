@@ -1323,7 +1323,14 @@ Como cliente, no conocés estos nombres técnicos ("Beneficio 1", etc.) — vos 
     });
     const data = await res.json();
     if (!res.ok) {
-      throw new Error((data && data.error) ? data.error : 'Error llamando a la función de Claude');
+      let msg = 'Error llamando a la función de Claude';
+      if (data) {
+        if (typeof data.error === 'string') msg = data.error;
+        else if (data.error && data.error.message) msg = data.error.message;
+        else if (data.message) msg = data.message;
+        else { try { msg = JSON.stringify(data); } catch (e) {} }
+      }
+      throw new Error(msg + ' (HTTP ' + res.status + ')');
     }
     return (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('\n');
   }
