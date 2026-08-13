@@ -863,6 +863,22 @@
   const PLAN_CATALOG_TEXT = PLAN_CATALOG.map(p => `${p.name} ($${p.price.toLocaleString('es-AR')}/mes): ${p.incluye}`).join('\n');
   const MODULE_CATALOG_TEXT = MODULE_CATALOG.map(m => `${m.name} (${m.price ? '$' + m.price.toLocaleString('es-AR') + '/mes' : 'costo variable'}): ${m.desc}`).join('\n');
 
+  // ---- Árbol real de Beneficios de Retención/Recupero/Upsell (Customer Success Argentina) ----
+  // Conocimiento interno: informa al cliente simulado y al evaluador, pero NO se muestra en ningún panel de la UI.
+  const RETENTION_LOGIC_TEXT = `Catálogo real de beneficios de retención/recupero/upsell de FUDO:
+- Beneficio 1: 30% OFF por 2 meses (planes y módulos) — primera acción de retención cuando la cuenta está ACTIVA y la objeción es BAJA (sin bloqueo, sin amenaza urgente de irse).
+- Beneficio 2: 50% OFF por 2 meses (planes y módulos) — retención urgente (cuenta activa BLOQUEADA u objeción ALTA); también se usa como excepción puntual en recupero cuando la baja es reciente y el motivo es puntual y resoluble rápido (ej: problema de pago que el cliente ya solucionó).
+- Beneficio 3: 50% OFF por 6 meses (planes y módulos) — default de recupero para el resto de los casos (baja reciente sin resolución a la vista, baja antigua), para ventas bajas detectadas en el dashboard, para onboarding estancado (+3 meses sin llegar a 100 ventas), para upgrades de plan, y como alternativa en cross-selling.
+- Beneficio 4: Gratis por 1 mes (todos los módulos) — opción principal para cross-selling (probar módulos nuevos sin fricción).
+
+Lógica de diagnóstico que un ejecutivo bien entrenado sigue ANTES de ofrecer cualquier beneficio:
+1. Chequear primero si el negocio en sí factura poco (ventas reales bajas, no solo el estado de bloqueo/baja) — si es así, corresponde directo Beneficio 3, sin importar el resto.
+2. Si la objeción es de producto/soporte sin resolver (no de precio), hay que resolver esa causa antes de ofrecer cualquier descuento — un descuento no arregla un problema de producto.
+3. Regla de no reincidencia: si la cuenta ya usó un beneficio en los últimos 6-12 meses y vuelve a objetar, no se repite el mismo escalón — se pasa al siguiente.
+4. Cuentas de alto valor (multi-sucursal, muchos módulos, MRR alto) ameritan intervención humana (llamada), no solo una macro automática.
+Un ejecutivo bien entrenado diagnostica antes de ofrecer, empieza por el escalón más bajo razonable, y solo escala si la objeción o el historial lo justifican — nunca regala el beneficio más alto de entrada si la objeción todavía es leve.`;
+
+
   function renderPlanCatalogPanel() {
     const el = document.getElementById('fs-plan-catalog-body');
     if (!el) return;
@@ -924,7 +940,7 @@
   };
 
   const COACH_INSTRUCTIONS = `
-Además de responder en personaje, tenés una segunda tarea silenciosa: evaluar el ÚLTIMO mensaje del EJECUTIVO usando técnicas reconocidas de negociación y ventas: empatía táctica, reflejo (mirroring), etiquetado de emociones (labeling) y preguntas calibradas de Chris Voss; el método SPIN Selling (situación, problema, implicación, necesidad-beneficio) de Neil Rackham; la técnica Sentir-Sentido-Descubierto para objeciones; la negociación basada en intereses de Fisher & Ury (separar a la persona del problema, enfocarse en intereses reales); el método Challenger Sale de Dixon & Adamson (enseñar con una perspectiva nueva, adaptar el mensaje, tomar el control de la conversación) para casos complejos o de venta consultiva; y, si el cliente está enojado o el caso es complejo, el método HEARD (Escuchar, Empatizar, Disculparse, Resolver, Diagnosticar la causa de fondo). Si conocés el estado real de la cuenta del cliente (plan y módulos), marcá también si el ejecutivo dio información incorrecta sobre qué incluye cada plan o módulo.
+Además de responder en personaje, tenés una segunda tarea silenciosa: evaluar el ÚLTIMO mensaje del EJECUTIVO usando técnicas reconocidas de negociación y ventas: empatía táctica, reflejo (mirroring), etiquetado de emociones (labeling) y preguntas calibradas de Chris Voss; el método SPIN Selling (situación, problema, implicación, necesidad-beneficio) de Neil Rackham; la técnica Sentir-Sentido-Descubierto para objeciones; la negociación basada en intereses de Fisher & Ury (separar a la persona del problema, enfocarse en intereses reales); el método Challenger Sale de Dixon & Adamson (enseñar con una perspectiva nueva, adaptar el mensaje, tomar el control de la conversación) para casos complejos o de venta consultiva; y, si el cliente está enojado o el caso es complejo, el método HEARD (Escuchar, Empatizar, Disculparse, Resolver, Diagnosticar la causa de fondo). Si conocés el estado real de la cuenta del cliente (plan y módulos), marcá también si el ejecutivo dio información incorrecta sobre qué incluye cada plan o módulo, y si el beneficio/descuento que ofreció es el que corresponde según la lógica real de FUDO (ni de más ni de menos para la situación).
 Tenés una tercera tarea: detectar si el ejecutivo, en su ÚLTIMO mensaje, se comprometió a un ACCIONABLE concreto y ejecutable sobre la cuenta (cambiar de plan, sumar o sacar un módulo, aplicar un descuento, pausar o reactivar la cuenta, etc.). Si lo hizo, describilo corto para mostrarlo como botón de acción; si no dijo nada ejecutable todavía, dejalo en null.
 Devolvé SIEMPRE un JSON (nada de markdown, nada de texto fuera del JSON) con esta forma exacta:
 {"reply":"tu respuesta en personaje, 1-3 oraciones, español, sin markdown","prob":0-100,"coach_tip":"1 frase corta y accionable en español mencionando qué técnica podría haber usado, o null si el mensaje del ejecutivo ya fue sólido y no hay margen claro de mejora","actionable":"1 frase corta en infinitivo describiendo la acción concreta a ejecutar (ej: 'Cambiar a Plan Pro', 'Agregar módulo Gestión de Mesas', 'Aplicar 20% de descuento por 2 meses'), o null si el ejecutivo no propuso nada ejecutable en este mensaje"}
@@ -939,7 +955,10 @@ Catálogo real de planes de FUDO:
 ${PLAN_CATALOG_TEXT}
 Catálogo real de módulos (se suman a cualquier plan, con costo aparte):
 ${MODULE_CATALOG_TEXT}
-Si el ejecutivo te pregunta qué plan o módulos tenés, respondé con estos datos reales. Si te propone un cambio de plan o de módulos, evaluá si tiene sentido según lo que necesitás — no aceptes ciegamente ni rechaces ciegamente, reaccioná según si te resuelve tu problema real.`;
+Si el ejecutivo te pregunta qué plan o módulos tenés, respondé con estos datos reales. Si te propone un cambio de plan o de módulos, evaluá si tiene sentido según lo que necesitás — no aceptes ciegamente ni rechaces ciegamente, reaccioná según si te resuelve tu problema real.
+
+${RETENTION_LOGIC_TEXT}
+Como cliente, no conocés estos nombres técnicos ("Beneficio 1", etc.) — vos solo notás si la oferta que te hacen te parece razonable, insuficiente, o sorprendentemente generosa para lo que estás reclamando. Reaccioná en consecuencia.`;
     }
     sys += '\n\n' + COACH_INSTRUCTIONS;
     sys += '\n\nRECORDATORIO FINAL, MUY IMPORTANTE: tu respuesta completa debe ser ÚNICAMENTE el objeto JSON de arriba — nada de texto, saludo ni explicación antes o después del JSON. Ni siquiera una palabra fuera de las llaves { }.';
@@ -1372,7 +1391,7 @@ Si el ejecutivo te pregunta qué plan o módulos tenés, respondé con estos dat
     const transcript = messages.map((m, i) => (m.role === 'user' ? 'EJECUTIVO FUDO' : 'CLIENTE') + ' (turno ' + i + '): ' + m.content).join('\n');
     const jsonShape = rubric.criteria.map(c => `"${c.key}":0-10`).join(',');
     const planContext = currentScenario.currentPlan
-      ? `\nEstado real de la cuenta del cliente: ${currentScenario.currentPlan}${currentScenario.currentModules && currentScenario.currentModules.length ? ' + módulos: ' + currentScenario.currentModules.join(', ') : ' (sin módulos)'}. Si el ejecutivo dio información incorrecta sobre qué incluye un plan o módulo (según este catálogo real), mencionalo en el feedback:\n${PLAN_CATALOG_TEXT}\n${MODULE_CATALOG_TEXT}`
+      ? `\nEstado real de la cuenta del cliente: ${currentScenario.currentPlan}${currentScenario.currentModules && currentScenario.currentModules.length ? ' + módulos: ' + currentScenario.currentModules.join(', ') : ' (sin módulos)'}. Si el ejecutivo dio información incorrecta sobre qué incluye un plan o módulo (según este catálogo real), mencionalo en el feedback:\n${PLAN_CATALOG_TEXT}\n${MODULE_CATALOG_TEXT}\n\nAdemás, evaluá si el ejecutivo usó el beneficio/descuento correcto según esta lógica real de FUDO (sin regalar de más ni quedarse corto):\n${RETENTION_LOGIC_TEXT}`
       : '';
     const actionableContext = actionablesTotal > 0
       ? `\nDurante la charla se detectaron ${actionablesTotal} accionable(s) concreto(s) propuestos por el ejecutivo, de los cuales ${actionablesExecuted} quedaron marcados como ejecutados con el botón de la interfaz. Si quedaron accionables sin ejecutar, mencionalo brevemente en el feedback como algo para no perder de vista.`
@@ -1381,7 +1400,7 @@ Si el ejecutivo te pregunta qué plan o módulos tenés, respondé con estos dat
 {${jsonShape},
 "feedback":"2-3 frases de feedback general concreto y accionable en español rioplatense",
 "momentos":[
-  {"turno":N,"dijo":"cita textual breve (máx 20 palabras) de lo que dijo el EJECUTIVO en ese turno","mejor":"qué debería haber dicho en su lugar, en 1 frase concreta","porque":"1 frase explicando por qué eso hubiera funcionado mejor con este cliente puntual, idealmente nombrando la técnica (mirroring, pregunta calibrada, SPIN, Feel-Felt-Found, método HEARD si el cliente estaba enojado, etc.)"}
+  {"turno":N,"dijo":"cita textual breve (máx 20 palabras) de lo que dijo el EJECUTIVO en ese turno","mejor":"qué debería haber dicho en su lugar, en 1 frase concreta","porque":"1 frase explicando por qué eso hubiera funcionado mejor con este cliente puntual, idealmente nombrando la técnica (mirroring, pregunta calibrada, SPIN, Feel-Felt-Found, método HEARD si el cliente estaba enojado, o el beneficio correcto según el árbol de retención si aplica, etc.)"}
 ]}
 Elegí entre 2 y 3 momentos como máximo: los turnos del ejecutivo con mayor impacto en el resultado. Si lo hizo muy bien y no hay margen real de mejora en ningún turno, devolvé "momentos" como array vacío.`;
 
