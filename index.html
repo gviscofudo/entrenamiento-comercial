@@ -89,6 +89,13 @@
   #fudo-sim .tension-fill { height: 100%; border-radius: 6px; transition: width 0.6s ease, background 0.6s ease; width: 50%; background: var(--gold); }
   #fudo-sim .tension-tags { display:flex; justify-content:space-between; font-size:10px; color: var(--bone-dim); margin-top:4px; }
   #fudo-sim .challenge-timer { font-weight:800; font-size:11px; color: var(--gold-dark); }
+  #fudo-sim .challenge-timer-wrap { display:inline-flex; align-items:center; gap:6px; }
+  #fudo-sim .timer-reset-btn {
+    background:none; border:1px solid var(--line); color: var(--bone-dim); border-radius:50%;
+    width:18px; height:18px; font-size:11px; line-height:1; cursor:pointer; display:inline-flex;
+    align-items:center; justify-content:center; padding:0; font-family: inherit;
+  }
+  #fudo-sim .timer-reset-btn:hover { border-color: var(--gold); color: var(--gold-dark); }
 
   #fudo-sim .chat { height: 300px; overflow-y:auto; padding: 4px 2px; margin-bottom: 10px; }
   #fudo-sim .msg { max-width: 85%; margin-bottom: 10px; padding: 9px 13px; border-radius: 12px; font-size: 13.5px; line-height:1.45; }
@@ -463,7 +470,7 @@
     <!-- TAB: Desafíos (desde el menú ☰) -->
     <div class="tab-content" data-tab-content="challenge" style="display:none;">
       <div class="picker-sub" style="font-size:16px; margin-bottom:10px;">🥊 Desafiar a un compañero</div>
-      <p style="margin-top:0; font-size:12.5px; color:var(--bone-dim);">Elegís a quién desafiar, jugás tu turno ahora mismo (con 5 min de reloj), y cuando tu compañero acepte y juegue el mismo caso, se compara quién cerró con mejor puntaje.</p>
+      <p style="margin-top:0; font-size:12.5px; color:var(--bone-dim);">Elegís a quién desafiar, jugás tu turno ahora mismo (con 10 min de reloj, reiniciable con el botón ↺), y cuando tu compañero acepte y juegue el mismo caso, se compara quién cerró con mejor puntaje.</p>
       <input type="text" id="fs-challenge-title" placeholder="Título del desafío (opcional, ej: 'Ronda 1')">
       <select id="fs-challenge-cat">
         <option value="venta">Venta</option>
@@ -565,7 +572,10 @@
       <div class="tension-wrap">
         <div class="tension-label">
           <span id="fs-tension-left">Riesgo de pérdida</span>
-          <span id="fs-challenge-timer" class="challenge-timer" style="display:none;">⏱️ 05:00</span>
+          <span class="challenge-timer-wrap" id="fs-challenge-timer-wrap" style="display:none;">
+            <span id="fs-challenge-timer" class="challenge-timer">⏱️ 10:00</span>
+            <button type="button" id="fs-challenge-timer-reset" class="timer-reset-btn" title="Reiniciar el reloj">↺</button>
+          </span>
           <span id="fs-tension-right">Cierre probable</span>
         </div>
         <div class="tension-track"><div class="tension-fill" id="fs-tension"></div></div>
@@ -1566,35 +1576,44 @@ Elegí entre 2 y 3 momentos como máximo: los turnos del ejecutivo con mayor imp
 
   const CAT_COLORS = { venta: '#FF5A1F', retencion: '#E0473B', recupero: '#1E9E5D', upselling: '#3B5FE0' };
 
+  const CHALLENGE_TIMER_SECONDS = 600; // 10 minutos
+
   let challengeTimerInterval = null;
+  let challengeTimerRemaining = 0;
   function clearChallengeTimer() {
     if (challengeTimerInterval) { clearInterval(challengeTimerInterval); challengeTimerInterval = null; }
+    const wrap = document.getElementById('fs-challenge-timer-wrap');
+    if (wrap) wrap.style.display = 'none';
+  }
+  function renderChallengeTimer() {
     const el = document.getElementById('fs-challenge-timer');
-    if (el) el.style.display = 'none';
+    const m = Math.floor(challengeTimerRemaining / 60), s = challengeTimerRemaining % 60;
+    el.textContent = '⏱️ ' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+    el.style.color = challengeTimerRemaining <= 30 ? 'var(--coral)' : '';
   }
   function startChallengeTimer(seconds) {
-    clearChallengeTimer();
-    let remaining = seconds;
-    const el = document.getElementById('fs-challenge-timer');
-    el.style.display = 'inline';
-    const render = () => {
-      const m = Math.floor(remaining / 60), s = remaining % 60;
-      el.textContent = '⏱️ ' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
-      el.style.color = remaining <= 30 ? 'var(--coral)' : '';
-    };
-    render();
+    if (challengeTimerInterval) clearInterval(challengeTimerInterval);
+    challengeTimerRemaining = seconds;
+    const wrap = document.getElementById('fs-challenge-timer-wrap');
+    wrap.style.display = 'inline-flex';
+    renderChallengeTimer();
     challengeTimerInterval = setInterval(() => {
-      remaining--;
-      render();
-      if (remaining <= 0) {
+      challengeTimerRemaining--;
+      renderChallengeTimer();
+      if (challengeTimerRemaining <= 0) {
         clearChallengeTimer();
         if (!ended) {
-          addMsg('system', '⏱️ Se acabaron los 5 minutos del desafío — cerrando la simulación automáticamente.');
+          addMsg('system', '⏱️ Se acabó el tiempo del desafío (10 min) — cerrando la simulación automáticamente.');
           endSimulation();
         }
       }
     }, 1000);
   }
+  document.getElementById('fs-challenge-timer-reset').addEventListener('click', () => {
+    if (!currentScenario || !currentScenario.challengeId || ended) return;
+    startChallengeTimer(CHALLENGE_TIMER_SECONDS);
+    addMsg('system', '↺ Reloj del desafío reiniciado a 10:00.');
+  });
 
   function activateScenario(caseObj, catId, opts) {
     opts = opts || {};
@@ -1662,7 +1681,7 @@ Elegí entre 2 y 3 momentos como máximo: los turnos del ejecutivo con mayor imp
     setTension(currentScenario.openingProb);
 
     if (currentScenario.challengeId) {
-      startChallengeTimer(300); // 5 minutos máximo por desafío
+      startChallengeTimer(CHALLENGE_TIMER_SECONDS); // 10 minutos máximo por desafío
     } else {
       clearChallengeTimer();
     }
