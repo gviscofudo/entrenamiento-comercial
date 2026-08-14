@@ -1311,8 +1311,8 @@ Como cliente, no conocés estos nombres técnicos ("Beneficio 1", etc.) — vos 
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + SUPABASE_ANON_JWT,
-        'apikey': SUPABASE_ANON_JWT,
+        'Authorization': 'Bearer ' + SUPABASE_KEY,
+        'apikey': SUPABASE_KEY,
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
